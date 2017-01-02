@@ -3,5 +3,5 @@ project(serwerHTTP)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp example.cpp)
+set(SOURCE_FILES main.cpp example.cpp fcgi.cpp)
 add_executable(serwerHTTP ${SOURCE_FILES})
