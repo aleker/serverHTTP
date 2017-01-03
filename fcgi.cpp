@@ -70,6 +70,7 @@ int main(void) {
         cout.rdbuf(&cout_fcgi_streambuf);
         cerr.rdbuf(&cerr_fcgi_streambuf);
 
+        // get the request URI
         const char * uri = FCGX_GetParam("REQUEST_URI", request.envp);
 
         string content = get_request_content(request);

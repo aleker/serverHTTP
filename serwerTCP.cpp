@@ -34,10 +34,17 @@ int main(int argc, char** argv) {
 
     if (listen(fd, 10) == 0) {
         while (true) {
-            // accept() wypelnia acceptedConnection oraz sizeOfAcceptedSockaddr
+            // ACCEPTING CONNECTION WITH CLIENT:
+            // accept() - it fills acceptedConnection and sizeOfAcceptedSockaddr
             acceptedSocketFd = accept(fd, (sockaddr*)&acceptedSocket, &sizeOfAcceptedSockaddr);
-            // Nie bedzie TIME_WAIT
+            // There will be no TIME_WAIT
             setsockopt(acceptedSocketFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
+
+            // RUNNING FCGI:
+            //--- http://stackoverflow.com/questions/26695738/nginx-fastcgi-without-using-spawn-fcgi
+
+
+            // SENDING ANSWER TO CLIENT
             ssize_t sentBytes = write(acceptedSocketFd, &buf, sizeof(buf));
             cout << "Sent bytes: " << sentBytes << endl;
             close(acceptedSocketFd);
