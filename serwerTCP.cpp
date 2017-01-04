@@ -3,8 +3,32 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "fcgio.h"
 
 using namespace std;
+
+int connectToFCGI() {
+    cout << "Tworzę połączenie z fcgi" << endl;
+    int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
+    char buf[1000];
+    sockaddr_in fcgiSocket;
+    fcgiSocket.sin_family = AF_INET;
+    fcgiSocket.sin_port = htons(8000);       // Port serwera
+    fcgiSocket.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+    int rc = connect(fd_fcgi, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+    if (rc == -1) {
+        perror("Error connecting to socket");
+        return -1;
+    }
+    cout << "Po connect\n";
+    ssize_t readBytes = 0;
+    while ((readBytes = recv(fd_fcgi, buf, sizeof(buf), 0)) != 0) {
+        cout << "Jestem\n";
+        write(STDOUT_FILENO, buf, readBytes);
+    }
+
+}
 
 int main(int argc, char** argv) {
     if (argc < 3) {
@@ -42,11 +66,11 @@ int main(int argc, char** argv) {
 
             // RUNNING FCGI:
             //--- http://stackoverflow.com/questions/26695738/nginx-fastcgi-without-using-spawn-fcgi
-
-
+            connectToFCGI();
+            cout<< "Dobra nara\n";
             // SENDING ANSWER TO CLIENT
-            ssize_t sentBytes = write(acceptedSocketFd, &buf, sizeof(buf));
-            cout << "Sent bytes: " << sentBytes << endl;
+            // ssize_t sentBytes = write(acceptedSocketFd, &buf, sizeof(buf));
+            // cout << "Sent bytes: " << sentBytes << endl;
             close(acceptedSocketFd);
         }
     }
