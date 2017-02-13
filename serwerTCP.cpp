@@ -10,7 +10,7 @@ using namespace std;
 int connectToFCGI() {
     cout << "Tworzę połączenie z fcgi" << endl;
     int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
-    char buf[1000];
+    char buf[1000] = {'a','b','c'};
     sockaddr_in fcgiSocket;
     fcgiSocket.sin_family = AF_INET;
     fcgiSocket.sin_port = htons(8000);       // Port serwera
@@ -22,6 +22,9 @@ int connectToFCGI() {
         return -1;
     }
     cout << "Po connect\n";
+    write(fd_fcgi, buf, 1000);
+    cout << "Wysłałem wiadomość\n";
+
     ssize_t readBytes = 0;
     while ((readBytes = recv(fd_fcgi, buf, sizeof(buf), 0)) != 0) {
         cout << "Jestem\n";

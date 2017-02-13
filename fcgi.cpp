@@ -5,6 +5,7 @@
 #include <string>
 #include "fcgio.h"
 
+
 using namespace std;
 
 // Maximum bytes
@@ -52,6 +53,7 @@ string get_request_content(const FCGX_Request & request) {
 
 int main(void) {
     // Backup the stdio streambufs
+
     streambuf * cin_streambuf  = cin.rdbuf();
     streambuf * cout_streambuf = cout.rdbuf();
     streambuf * cerr_streambuf = cerr.rdbuf();
@@ -102,3 +104,5 @@ int main(void) {
 
     return 0;
 }
+
+// g++ fcgi.cpp -lfcgi++ -lfcgi -o bin/fcgi
