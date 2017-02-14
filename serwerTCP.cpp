@@ -66,7 +66,7 @@ static Record_fcgi MakeRecord(FCGI_Header header, char* data) {
     int contentLength = header.contentLengthB0 | header.contentLengthB1 << 8;
     int paddingLength = header.paddingLength;
     //cout << "paddingLength " << paddingLength << " contentLength " << contentLength << endl;
-
+    // TODO dynamic array allocation
     Record_fcgi record;
     record.header = header;
     unsigned char buf_data[contentLength] = "Marta jest super ekstra i Ola tez!11!";
@@ -85,7 +85,7 @@ int connectToFCGI3() {
     FCGI_Header header = MakeHeader(FCGI_BEGIN_REQUEST, 300, 37, 3);
     char my_data[100] = "Marta jest super ekstra i Ola tez!11!";
     Record_fcgi record = MakeRecord(header, my_data);
-
+    // TODO sending two messages
     int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
     sockaddr_in fcgiSocket;
     fcgiSocket.sin_family = AF_INET;
