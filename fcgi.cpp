@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <string>
+#include <fcgi_stdio.h>
 #include "fcgio.h"
 
 
@@ -62,6 +63,7 @@ int main(void) {
 
     FCGX_Init();
     int sock = FCGX_OpenSocket(":8000", 1024);
+    cout << "sock =  " << sock << "\n";
     FCGX_InitRequest(&request, sock, 0);
 
     while (FCGX_Accept_r(&request) >= 0) {
@@ -103,6 +105,7 @@ int main(void) {
     cerr.rdbuf(cerr_streambuf);
 
     return 0;
+
 }
 
 // g++ fcgi.cpp -lfcgi++ -lfcgi -o bin/fcgi
