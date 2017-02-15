@@ -52,8 +52,12 @@ static FCGI_Header MakeHeader(
 
 struct Record_fcgi {
     FCGI_Header header;
-    unsigned char contentData[37];
-    unsigned char paddingData[3];
+    //unsigned char *contentData;
+    //unsigned char *paddingData;
+    //unsigned char contentData[];
+    //unsigned char paddingData[];
+    string contentData;
+    string paddingData;
 };
 
 unsigned char * serialize_char(unsigned char *buffer, char value)
@@ -62,29 +66,57 @@ unsigned char * serialize_char(unsigned char *buffer, char value)
     return buffer + 1;
 }
 
-static Record_fcgi MakeRecord(FCGI_Header header, char* data) {
+static Record_fcgi MakeRecord(FCGI_Header header, string data) {
     int contentLength = header.contentLengthB0 | header.contentLengthB1 << 8;
     int paddingLength = header.paddingLength;
     //cout << "paddingLength " << paddingLength << " contentLength " << contentLength << endl;
     // TODO dynamic array allocation
+
     Record_fcgi record;
     record.header = header;
-    unsigned char buf_data[contentLength] = "Marta jest super ekstra i Ola tez!11!";
-    for (int i=0 ; i < 37; i++) {
-        record.contentData[i] = buf_data[i];
+    //record.contentData = new unsigned char[contentLength];
+    //record.paddingData = new unsigned char[paddingLength];
+    //record.contentData = (unsigned char *)malloc(sizeof(char) * contentLength);
+    //record.paddingData = (unsigned char *)malloc(sizeof(char) * paddingLength);
+
+//    for (int i=0 ; i < contentLength; i++) {
+//        record.contentData[i] = (unsigned char)data[i];
+//    }
+    record.contentData = data;
+    for (int i = 0; i < paddingLength; i++) {
+        record.paddingData[i] = '0';
     }
-    unsigned char buf[paddingLength] = {0};
-    for (int i=0 ; i < 3; i++) {
-        record.paddingData[i] = buf[i];
-    }
+
+
+    //delete [] record.contentData;
+    //delete [] record.paddingData;
+
     return record;
 }
 
 int connectToFCGI3() {
-    cout << "Wykonuję connectToFCGI3\n";
-    FCGI_Header header = MakeHeader(FCGI_BEGIN_REQUEST, 300, 37, 3);
-    char my_data[100] = "Marta jest super ekstra i Ola tez!11!";
-    Record_fcgi record = MakeRecord(header, my_data);
+    cout << "---Wykonuję connectToFCGI3---\n";
+    int contentLength = 37;
+    int paddingLength = 3;
+    //FCGI_Header header = MakeHeader(FCGI_BEGIN_REQUEST, 300, contentLength, paddingLength);
+    string message = "Marta jest super ekstra i Ola tez!11!";
+    //Record_fcgi record = MakeRecord(header, message);
+    unsigned char record[8 + contentLength + paddingLength];
+    record[0] = FCGI_VERSION_1;
+    record[1] = (unsigned char) FCGI_BEGIN_REQUEST;
+    record[2] = (unsigned char) ((300 >> 8) & 0xff);
+    record[3] = (unsigned char) ((300) & 0xff);
+    record[4] = (unsigned char) ((contentLength >> 8) & 0xff);
+    record[5] = (unsigned char) ((contentLength) & 0xff);
+    record[6] = (unsigned char) paddingLength;
+    record[7] = 0;
+    for (int i = 8; i < 8+contentLength; i++) {
+        record[i] = (unsigned char)message[i];
+    }
+    for (int i = 8+contentLength; i < sizeof(record); i++) {
+        record[i] = '0';
+    }
+
     // TODO sending two messages
     int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
     sockaddr_in fcgiSocket;
@@ -96,10 +128,10 @@ int connectToFCGI3() {
         perror("Error connecting to socket");
         return -1;
     }
-    cout << "rc = " << rc << "\n";
+    cout << "ROZMIAR REKORDU: " << sizeof(record) << endl;
     //sendto(fd_fcgi, &header, sizeof(header), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
     sendto(fd_fcgi, &record, sizeof(record), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
-    cout << "Po sendto. Wychodzę z connectToFCGI\n";
+    cout << "---Po sendto. Wychodzę z connectToFCGI---\n";
 }
 
 
@@ -110,14 +142,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    char buf[8] = "Hello\n";
-
     int fd = socket(PF_INET, SOCK_STREAM, 0);
     if (fd == -1) {
         perror("Error creating socket");
         return -1;
     }
-    cout << "fd = " << fd << "\n";
+
 
     sockaddr_in server;
     server.sin_family = AF_INET;
@@ -143,12 +173,11 @@ int main(int argc, char** argv) {
             // READING MESSAGE FROM CLIENT
             Len = read(acceptedSocketFd, buffer, bufsize);
             buffer[Len] = 0;// make sure it's a proper string
-            cout<< buffer << endl;
+            cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI\n" << buffer << "KONIEC WIADOMOŚCI\n\n" << endl;
 
             // RUNNING FCGI:
             //--- http://stackoverflow.com/questions/26695738/nginx-fastcgi-without-using-spawn-fcgi
             connectToFCGI3();
-            cout<< "Wyszedłem z connectToFCGI\n";
             // SENDING ANSWER TO CLIENT
             // ssize_t sentBytes = write(acceptedSocketFd, &buf, sizeof(buf));
             // cout << "Sent bytes: " << sentBytes << endl;
