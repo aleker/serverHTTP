@@ -40,9 +40,9 @@ void fillBeginRequestBody(unsigned char* record, int shift, int role, int flags)
     }
 }
 
-int connectToFCGI(int requestId, int contentLength, unsigned char* content_data) {
+sockaddr_in createFCGIConnection(int fd_fcgi) {
     // ----- CREATE SOCKET: -----
-    int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
+    //int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
     sockaddr_in fcgiSocket;
     fcgiSocket.sin_family = AF_INET;
     fcgiSocket.sin_port = htons(8000);       // Port serwera
@@ -50,9 +50,12 @@ int connectToFCGI(int requestId, int contentLength, unsigned char* content_data)
     int rc = connect(fd_fcgi, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
     if (rc == -1) {
         perror("Error connecting to socket");
-        return -1;
+        //return -1;
     }
+    return fcgiSocket;
+}
 
+unsigned char* sendGET(int requestId, int contentLength, unsigned char* content_data, int fd_fcgi, sockaddr_in fcgiSocket) {
     // ----- SEND RECORDS: -----
     // TODO upper boundary for message size
     int paddingLength = (8 - contentLength%8)%8;
@@ -76,13 +79,15 @@ int connectToFCGI(int requestId, int contentLength, unsigned char* content_data)
     sendto(fd_fcgi, &record3, sizeof(record3), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
 
     // -----RECEIVE MESSAGE: -----
-    unsigned char od_fcgi[100];
+    unsigned char from_fcgi[100], *ptr;
+    ptr = from_fcgi;
     ssize_t readBytes = 0;
-    while ((readBytes = recv(fd_fcgi, od_fcgi, sizeof(od_fcgi), 0)) != 0) {
-        write(1, od_fcgi, (size_t)readBytes);
+    while ((readBytes = recv(fd_fcgi, from_fcgi, sizeof(from_fcgi), 0)) != 0) {
+        write(1, from_fcgi, (size_t)readBytes);
     }
-    close(fd_fcgi);
+    cout << endl << "CAŁA WIADOMOŚĆ PRZESŁANA? " << endl;
 
+    return ptr;
 }
 
 int main(int argc, char** argv) {
@@ -120,21 +125,26 @@ int main(int argc, char** argv) {
             setsockopt(acceptedSocketFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)); // There will be no TIME_WAIT
 
             // READING MESSAGE FROM CLIENT
+            // TODO PARSOWANIE
             ssize_t Len = read(acceptedSocketFd, content_data, bufsize);
             content_data[Len] = 0;// make sure it's a proper string
             cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI: " << sizeof(content_data) << endl << content_data << "KONIEC WIADOMOŚCI\n\n" << endl;
 
             // RUNNING FCGI:
             //--- http://stackoverflow.com/questions/26695738/nginx-fastcgi-without-using-spawn-fcgi
-            connectToFCGI(id, sizeof(content_data), content_data);
+            int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
+            sockaddr_in sock = createFCGIConnection(fd_fcgi);
+            unsigned  char *answer = sendGET(id, sizeof(content_data), content_data, fd_fcgi, sock);
+            close(fd_fcgi);
             // SENDING ANSWER TO CLIENT
-            // ssize_t sentBytes = write(acceptedSocketFd, &buf, sizeof(buf));
-            // cout << "Sent bytes: " << sentBytes << endl;
+            // TODO POPRAWNY MESSAGE DO KLIENTA
+            ssize_t sentBytes = write(acceptedSocketFd, answer, 100);
             close(acceptedSocketFd);
         }
     }
     close(fd);
 }
+// TODO ZRÓB KLASY
 
 // https://fossies.org/linux/FCGI/fcgiapp.c#l_2190
 // http://web.archive.org/web/20160306081510/http://fastcgi.com/drupal/node/6?q=node/22#SB
