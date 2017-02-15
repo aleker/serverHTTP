@@ -11,43 +11,37 @@
 
 using namespace std;
 
-void fillHeader(unsigned char* record, int type, int request_id, int contentLength, int paddingLength) {
-    record[VERSION] = FCGI_VERSION_1;
-    record[TYPE] = (unsigned char) type;
-    record[REQUEST_ID_B1] = (unsigned char) ((request_id >> 8) & 0xff);
-    record[REQUEST_ID_B0] = (unsigned char) ((request_id) & 0xff);
-    record[CONTENT_LENGTH_B1] = (unsigned char) ((contentLength >> 8) & 0xff);
-    record[CONTENT_LENGTH_B0] = (unsigned char) ((contentLength) & 0xff);
-    record[PADDING_LENGTH] = (unsigned char) paddingLength;
-    record[RESERVED] = 0;
+void fillHeader(unsigned char* record, int shift, int type, int request_id, int contentLength, int paddingLength) {
+    record[VERSION + shift] = FCGI_VERSION_1;
+    record[TYPE + shift] = (unsigned char) type;
+    record[REQUEST_ID_B1 + shift] = (unsigned char) ((request_id >> 8) & 0xff);
+    record[REQUEST_ID_B0 + shift] = (unsigned char) ((request_id) & 0xff);
+    record[CONTENT_LENGTH_B1 + shift] = (unsigned char) ((contentLength >> 8) & 0xff);
+    record[CONTENT_LENGTH_B0 + shift] = (unsigned char) ((contentLength) & 0xff);
+    record[PADDING_LENGTH + shift] = (unsigned char) paddingLength;
+    record[RESERVED + shift] = 0;
 }
 
-void fillContentData(unsigned char* record, unsigned char* content_data, int contentLength, int paddingLength) {
+void fillContentData(unsigned char* record, int shift, unsigned char* content_data, int contentLength, int paddingLength) {
     for (int i = 0; i < contentLength; i++) {
-        record[i + HEADER_SIZE] = content_data[i];
+        record[i + shift] = content_data[i];
     }
-    for (int i = HEADER_SIZE+contentLength; i < (HEADER_SIZE + contentLength + paddingLength); i++) {
+    for (int i = shift + contentLength; i < (shift + contentLength + paddingLength); i++) {
         record[i] = 0;
     }
 }
 
-void fillBeginRequestBody(unsigned char* record, int role, int flags) {
-    record[HEADER_SIZE + ROLE_B1] = (unsigned char) ((role >> 8) & 0xff);
-    record[HEADER_SIZE + ROLE_B0] = (unsigned char) ((role) & 0xff);
-    record[HEADER_SIZE + FLAGS] = (unsigned char) flags;
-    for (int i = HEADER_SIZE+RESERVED_BEGIN; i < HEADER_SIZE+BEGIN_REQUEST_BODY_SIZE; i++) {
+void fillBeginRequestBody(unsigned char* record, int shift, int role, int flags) {
+    record[ROLE_B1 + shift] = (unsigned char) ((role >> 8) & 0xff);
+    record[ROLE_B0 + shift] = (unsigned char) ((role) & 0xff);
+    record[FLAGS + shift] = (unsigned char) flags;
+    for (int i = RESERVED_BEGIN + shift; i < BEGIN_REQUEST_BODY_SIZE + shift; i++) {
         record[i] = 0;
     }
-}
-
-void createBeginMessage(unsigned char* record, int requestId, int role) {
-    fillHeader(record, FCGI_BEGIN_REQUEST, requestId, BEGIN_REQUEST_BODY_SIZE, 0);
-    fillBeginRequestBody(record, role, 0);
 }
 
 int connectToFCGI(int requestId, int contentLength, unsigned char* content_data) {
-    cout << "---Wykonuję connectToFCGI3---\n";
-
+    // ----- CREATE SOCKET: -----
     int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
     sockaddr_in fcgiSocket;
     fcgiSocket.sin_family = AF_INET;
@@ -58,45 +52,37 @@ int connectToFCGI(int requestId, int contentLength, unsigned char* content_data)
         perror("Error connecting to socket");
         return -1;
     }
-    // --------------------------------------------------
-    // TODO upper boundary for message size
-    // TODO sending two messages
-    int paddingLength = (8 - contentLength%8)%8;
-    // SEND BEGIN MESSAGE
-    unsigned char record[HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE];
-    createBeginMessage(record, requestId, FCGI_RESPONDER);
-    cout << "ROZMIAR REKORDU B: " << sizeof(record) << endl;
-    sendto(fd_fcgi, &record, sizeof(record), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
-    free(record);
 
-    // SEND DATA
-    unsigned char record2[HEADER_SIZE + contentLength + paddingLength];
-    fillHeader(record2, FCGI_PARAMS, requestId, contentLength, paddingLength);
-    fillContentData(record2, content_data, contentLength, paddingLength);
-    cout << "ROZMIAR REKORDU P: " << sizeof(record2) << endl;
+    // ----- SEND RECORDS: -----
+    // TODO upper boundary for message size
+    int paddingLength = (8 - contentLength%8)%8;
+    // BEGIN_REQUEST
+    unsigned char record[HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE + HEADER_SIZE];
+    fillHeader(record, 0, FCGI_BEGIN_REQUEST, requestId, BEGIN_REQUEST_BODY_SIZE, 0);
+    fillBeginRequestBody(record, HEADER_SIZE + 0, FCGI_RESPONDER, 0);
+    fillHeader(record, HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE, FCGI_BEGIN_REQUEST, requestId, BEGIN_REQUEST_BODY_SIZE, 0);
+    sendto(fd_fcgi, &record, sizeof(record), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+
+    // FCGI_PARAMS
+    unsigned char record2[HEADER_SIZE + contentLength + paddingLength + HEADER_SIZE];
+    fillHeader(record2, 0, FCGI_PARAMS, requestId, contentLength, paddingLength);
+    fillContentData(record2, HEADER_SIZE, content_data, contentLength, paddingLength);
+    fillHeader(record2, HEADER_SIZE + contentLength + paddingLength, FCGI_PARAMS, requestId, 0, 0);
     sendto(fd_fcgi, &record2, sizeof(record2), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
 
-//    // SEND DATA2
-//    unsigned char content_data2[] = {'a','b','c','d','e','f','g','h'};
-//    unsigned char record3[HEADER_SIZE + 8];
-//    fillHeader(record3, FCGI_PARAMS, requestId, 8, 0);
-//    fillContentData(record3, content_data2, 8, 0);
-//    cout << "ROZMIAR REKORDU P: " << sizeof(record3) << endl;
-//    sendto(fd_fcgi, &record3, sizeof(record3), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
-
     // SEND DATA3
-    unsigned char record4[HEADER_SIZE];
-    fillHeader(record4, FCGI_PARAMS, requestId, 0, 0);
-    cout << "ROZMIAR REKORDU P: " << sizeof(record4) << endl;
-    sendto(fd_fcgi, &record4, sizeof(record4), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+    unsigned char record3[HEADER_SIZE];
+    fillHeader(record2, 0, FCGI_STDIN, requestId, 0, 0);
+    sendto(fd_fcgi, &record3, sizeof(record3), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
 
-    // SEND DATA3
-    unsigned char record5[HEADER_SIZE];
-    fillHeader(record2, FCGI_STDIN, requestId, 0, 0);
-    cout << "ROZMIAR REKORDU S: " << sizeof(record5) << endl;
-    sendto(fd_fcgi, &record5, sizeof(record5), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+    // -----RECEIVE MESSAGE: -----
+    unsigned char od_fcgi[100];
+    ssize_t readBytes = 0;
+    while ((readBytes = recv(fd_fcgi, od_fcgi, sizeof(od_fcgi), 0)) != 0) {
+        write(1, od_fcgi, (size_t)readBytes);
+    }
+    close(fd_fcgi);
 
-    cout << "---Po sendto. Wychodzę z connectToFCGI---\n";
 }
 
 int main(int argc, char** argv) {
@@ -124,6 +110,7 @@ int main(int argc, char** argv) {
     int enable = 1;
 
     unsigned char content_data[bufsize];
+    // TODO RANDOM ID
     int id = 300;
 
     if (listen(fd, 10) == 0) {
