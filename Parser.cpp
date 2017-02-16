@@ -2,11 +2,7 @@
 // Created by tusia on 16.02.17.
 //
 
-#include <string.h>
 #include "Parser.h"
-
-
-
 
 int Parser::parseBrowserMessage(unsigned char* message){
     int i = 0;
@@ -42,6 +38,13 @@ void Parser::createGetStruct(){
             i++;
         }
     }
+
+    cout << "parameters: ";
+    for (int k=0;k<getMsg.parameters.size();k++) cout <<getMsg.parameters[k];
+    cout << '\n\n';
+    cout << "host: ";
+    for (int k=0;k<getMsg.parameters.size();k++) cout <<getMsg.host[k];
+    cout << '\n\n';
 
 }
 

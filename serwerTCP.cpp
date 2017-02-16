@@ -3,6 +3,10 @@
 #include "BeginRecord.h"
 #include "ConnectionManager.h"
 #include "Parser.h"
+#include <algorithm>
+#include <unistd.h>
+#include <iostream>
+
 
 using namespace std;
 

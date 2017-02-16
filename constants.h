@@ -4,16 +4,7 @@
 
 #ifndef SERWERHTTP_CONSTANTS_H
 #define SERWERHTTP_CONSTANTS_H
-#include <stdio.h>
-#include <fcgimisc.h>
 #include <iostream>
-#include <algorithm>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <cassert>
-#include <fastcgi.h>
 
 static size_t bufsize = 1000;
 static unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";

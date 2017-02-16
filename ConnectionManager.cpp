@@ -2,6 +2,8 @@
 // Created by tusia on 16.02.17.
 //
 
+
+
 #include "ConnectionManager.h"
 
 ConnectionManager::ConnectionManager(const char *host,int port) : port(port), host(host) {}
