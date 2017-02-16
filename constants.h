@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-size_t bufsize = 1000;
+static size_t bufsize = 1000;
 
 #define FCGI_BEGIN_REQUEST       1
 #define FCGI_ABORT_REQUEST       2

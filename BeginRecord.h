@@ -9,7 +9,7 @@
 
 class BeginRecord: public Record{
 public:
-    BeginRecord(int array_size, int type, int request_id, int contentLength);
+    BeginRecord(int array_size, int type, int request_id);
 
     void fillBeginRequestBody(int shift, int role, int flags);
 };

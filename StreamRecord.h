@@ -11,9 +11,9 @@
 class StreamRecord: public Record {
 public:
 
-    StreamRecord(int array_size, int type, int request_id, int contentLength);
+    StreamRecord(int array_size, int type, int request_id);
 
-    void fillContentData(int shift, unsigned char *content_data);
+    void fillContentData(int shift, unsigned char *content_data, int contentLength);
 };
 
 
