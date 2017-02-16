@@ -21,7 +21,7 @@ int Parser::parseBrowserMessage(unsigned char* message){
 
 }
 void Parser::createGetStruct(){
-    GETMessage getMsg;
+    GETMessage getMsg = Parser::GETMessage();
     int i=0;
     int index = findSubstring("?");
     if( index!=-1){
@@ -39,7 +39,6 @@ void Parser::createGetStruct(){
             index++;
         }
     }
-
     index = findSubstring("Host");
     if(index!=-1){
         i = index+6;
@@ -48,26 +47,28 @@ void Parser::createGetStruct(){
             i++;
         }
     }
+
+    index = findSubstring("favicon");
+    if(index!=-1) getMsg.favicon = 1;
+
+    cout<< "PARSED MESSAGE! \n";
+    cout << "parameters: ";
+    for (int k=0;k<getMsg.parameters.size();k++) cout <<getMsg.parameters[k];
+    cout << endl << "host: ";
+    for (int k=0;k<getMsg.host.size();k++) cout <<getMsg.host[k];
+    cout << endl << "uri: ";
+    for (int k=0;k<getMsg.uri.size();k++) cout <<getMsg.uri[k];
     index = findSubstring("favicon");
     if(index!=-1) getMsg.favicon = 1;
 
 
-    cout << "parameters: ";
-    for (int k=0;k<getMsg.parameters.size();k++) cout <<getMsg.parameters[k];
-    cout << "\n\n";
-    cout << "host: ";
-    for (int k=0;k<getMsg.host.size();k++) cout <<getMsg.host[k];
-    cout << "\n\n";
-    cout << "uri: ";
-    for (int k=0;k<getMsg.uri.size();k++) cout <<getMsg.uri[k];
-    cout << "\n\n";
 
 }
 
 int Parser::findSubstring(const char* substring){
     auto it = std::search(messageCopy.begin(), messageCopy.end(), substring, substring + strlen(substring));
     if (it != messageCopy.end()) {
-        int index = std::distance(messageCopy.begin(), it );
+        int index = (int) std::distance(messageCopy.begin(), it );
         return index;
     }
     else
