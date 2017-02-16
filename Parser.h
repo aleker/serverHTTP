@@ -16,17 +16,14 @@ using namespace std;
 
 class Parser {
 public:
-    struct GETMessage{
-        vector<unsigned char> parameters;
-        vector<unsigned char> host;
-        vector<unsigned char> uri;
-        int favicon;
-    };
+    vector<unsigned char> parameters;
+    vector<unsigned char> host;
+    vector<unsigned char> uri;
 
     vector<unsigned char> messageCopy;
     Parser(){}
 
-    int parseBrowserMessage(unsigned char *message);
+    int parseBrowserMessage(unsigned char* message);
     int findSubstring(const char *substring);
 
     void createGetStruct();

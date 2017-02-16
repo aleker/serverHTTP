@@ -43,10 +43,6 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Parser parser;
-    unsigned char* msg = (unsigned char *) "GET /kasia?parameter1=elo&parameter2=sava HTTP/1.1 Host: 0.0.0.0\n Connection: keep-alive\n Upgrade-Insecure-Requests: 1\n";
-    cout << parser.parseBrowserMessage(msg) << endl;
-
     ConnectionManager serverMainConnection(argv[1],atoi(argv[2]));
     serverMainConnection.fullConnection();      // prepare server socket
 
@@ -77,6 +73,11 @@ int main(int argc, char** argv) {
             fcgiConnection.createFCGIConnection();
             sendGET(id, sizeof(content_data), content_data, &fcgiConnection);
             // get message from fcgi and send it to client:
+
+            unsigned char* ptr;
+            ptr = content_data;
+            Parser parser;
+            parser.parseBrowserMessage(ptr);
             fcgiConnection.forwardMessage(acceptedSocketFd);
             close(fcgiConnection.descriptor);
 
