@@ -69,6 +69,10 @@ int main(int argc, char** argv) {
             content_data[Len] = 0;// make sure it's a proper string
             cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI: " << sizeof(content_data) << endl << content_data << "KONIEC WIADOMOŚCI\n\n" << endl;
 
+            // PARSE MESSAGE:
+            Parser parser;
+            parser.parseBrowserMessage(&content_data[0]);
+
             // FCGI CONNECTION:
             // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
             ConnectionManager fcgiConnection("127.0.0.1", 8000);
@@ -76,10 +80,6 @@ int main(int argc, char** argv) {
             sendGET(id, sizeof(content_data), content_data, &fcgiConnection);
             // get message from fcgi and send it to client:
 
-            unsigned char* ptr;
-            ptr = content_data;
-            Parser parser;
-            parser.parseBrowserMessage(ptr);
             fcgiConnection.forwardMessage(acceptedSocketFd);
             close(fcgiConnection.descriptor);
 

@@ -3,9 +3,8 @@
 //
 
 #include "Parser.h"
-
-
-
+// TODO usunąć messageCopy z klasy
+// TODO stworzyć gotowe rekordy do wysłania
 
 int Parser::parseBrowserMessage(unsigned char* message){
     int i = 0;
@@ -49,7 +48,6 @@ void Parser::createGetStruct(){
         }
     }
 
-
     cout<< "*****************PARSED MESSAGE!************** \n";
     cout << "parameters: ";
     for (int k=0;k<parameters.size();k++) cout <<parameters[k];
@@ -57,8 +55,7 @@ void Parser::createGetStruct(){
     for (int k=0;k<host.size();k++) cout << host[k];
     cout << endl << "uri: ";
     for (int k=0;k<uri.size();k++) cout << uri[k];
-    cout << endl;
-
+    cout << endl << "*****************PARSED MESSAGE END!************** \n";
 
 }
 
