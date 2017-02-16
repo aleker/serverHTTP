@@ -14,35 +14,6 @@
 
 using namespace std;
 
-void fillHeader(unsigned char* record, int shift, int type, int request_id, int contentLength, int paddingLength) {
-    record[VERSION + shift] = FCGI_VERSION_1;
-    record[TYPE + shift] = (unsigned char) type;
-    record[REQUEST_ID_B1 + shift] = (unsigned char) ((request_id >> 8) & 0xff);
-    record[REQUEST_ID_B0 + shift] = (unsigned char) ((request_id) & 0xff);
-    record[CONTENT_LENGTH_B1 + shift] = (unsigned char) ((contentLength >> 8) & 0xff);
-    record[CONTENT_LENGTH_B0 + shift] = (unsigned char) ((contentLength) & 0xff);
-    record[PADDING_LENGTH + shift] = (unsigned char) paddingLength;
-    record[RESERVED + shift] = 0;
-}
-
-void fillContentData(unsigned char* record, int shift, unsigned char* content_data, int contentLength, int paddingLength) {
-    for (int i = 0; i < contentLength; i++) {
-        record[i + shift] = content_data[i];
-    }
-    for (int i = shift + contentLength; i < (shift + contentLength + paddingLength); i++) {
-        record[i] = 0;
-    }
-}
-
-void fillBeginRequestBody(unsigned char* record, int shift, int role, int flags) {
-    record[ROLE_B1 + shift] = (unsigned char) ((role >> 8) & 0xff);
-    record[ROLE_B0 + shift] = (unsigned char) ((role) & 0xff);
-    record[FLAGS + shift] = (unsigned char) flags;
-    for (int i = RESERVED_BEGIN + shift; i < BEGIN_REQUEST_BODY_SIZE + shift; i++) {
-        record[i] = 0;
-    }
-}
-
 sockaddr_in createFCGIConnection(int fd_fcgi) {
     // ----- CREATE SOCKET: -----
     //int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
