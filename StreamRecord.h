@@ -5,7 +5,7 @@
 #ifndef SERWERHTTP_STREAMRECORD_H
 #define SERWERHTTP_STREAMRECORD_H
 
-
+#pragma once
 #include "Record.h"
 
 class StreamRecord: public Record {
