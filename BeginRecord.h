@@ -4,8 +4,9 @@
 
 #ifndef SERWERHTTP_BEGINRECORD_H
 #define SERWERHTTP_BEGINRECORD_H
-#pragma once
+
 #include "Record.h"
+
 
 class BeginRecord: public Record{
 public:

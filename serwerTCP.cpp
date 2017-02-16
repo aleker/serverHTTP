@@ -1,16 +1,7 @@
-#include <iostream>
-#include <algorithm>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <cassert>
-#include <fastcgi.h>
 #include "constants.h"
-#include <fcgimisc.h>
-
 #include "StreamRecord.h"
 #include "BeginRecord.h"
+#include "ConnectionManager.h"
 
 using namespace std;
 
@@ -41,21 +32,6 @@ void fillBeginRequestBody(unsigned char* record, int shift, int role, int flags)
     for (int i = RESERVED_BEGIN + shift; i < BEGIN_REQUEST_BODY_SIZE + shift; i++) {
         record[i] = 0;
     }
-}
-
-sockaddr_in createFCGIConnection(int fd_fcgi) {
-    // ----- CREATE SOCKET: -----
-    //int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
-    sockaddr_in fcgiSocket;
-    fcgiSocket.sin_family = AF_INET;
-    fcgiSocket.sin_port = htons(8000);       // Port serwera
-    fcgiSocket.sin_addr.s_addr = inet_addr("127.0.0.1");
-    int rc = connect(fd_fcgi, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
-    if (rc == -1) {
-        perror("Error connecting to socket");
-        //return -1;
-    }
-    return fcgiSocket;
 }
 
 unsigned char* sendGET(int requestId, int contentLength, unsigned char* content_data, int fd_fcgi, sockaddr_in fcgiSocket) {
@@ -108,17 +84,8 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    int fd = socket(PF_INET, SOCK_STREAM, 0);
-    if (fd == -1) {
-        perror("Error creating socket");
-        return -1;
-    }
-
-    sockaddr_in server;
-    server.sin_family = AF_INET;
-    server.sin_port = htons(atoi(argv[2]));
-    server.sin_addr.s_addr = inet_addr(argv[1]);
-    bind(fd, (sockaddr*)&server, sizeof(server));
+    ConnectionManager serverMainConnection(argv[1],atoi(argv[2]));
+    serverMainConnection.fullConnection();
 
     sockaddr_in acceptedSocket;
     int acceptedSocketFd;
@@ -129,10 +96,10 @@ int main(int argc, char** argv) {
     // TODO RANDOM ID
     int id = 300;
 
-    if (listen(fd, 10) == 0) {
+    if (listen(serverMainConnection.descriptor, 10) == 0) {
         while (true) {
             // ACCEPTING CONNECTION WITH CLIENT:
-            acceptedSocketFd = accept(fd, (sockaddr*)&acceptedSocket, &sizeOfAcceptedSockaddr);
+            acceptedSocketFd = accept(serverMainConnection.descriptor, (sockaddr*)&acceptedSocket, &sizeOfAcceptedSockaddr);
             setsockopt(acceptedSocketFd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)); // There will be no TIME_WAIT
 
             // READING MESSAGE FROM CLIENT
@@ -142,18 +109,17 @@ int main(int argc, char** argv) {
             cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI: " << sizeof(content_data) << endl << content_data << "KONIEC WIADOMOŚCI\n\n" << endl;
 
             // RUNNING FCGI:
-            //--- http://stackoverflow.com/questions/26695738/nginx-fastcgi-without-using-spawn-fcgi
-            int fd_fcgi = socket(PF_INET, SOCK_STREAM, 0);
-            sockaddr_in sock = createFCGIConnection(fd_fcgi);
-            unsigned  char *answer = sendGET(id, sizeof(content_data), content_data, fd_fcgi, sock);
-            close(fd_fcgi);
+            ConnectionManager fcgiConnection("127.0.0.1", 8000);
+            fcgiConnection.createFCGIConnection();
+            unsigned  char *answer = sendGET(id, sizeof(content_data), content_data, fcgiConnection.descriptor, fcgiConnection.socketStruct);
+            close(fcgiConnection.descriptor);
             // SENDING ANSWER TO CLIENT
             // TODO POPRAWNY MESSAGE DO KLIENTA
             ssize_t sentBytes = write(acceptedSocketFd, answer, 100);
             close(acceptedSocketFd);
         }
     }
-    close(fd);
+    close(serverMainConnection.descriptor);
 }
 // TODO ZRÓB KLASY
 

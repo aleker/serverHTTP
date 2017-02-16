@@ -3,7 +3,7 @@
 //
 
 #include "BeginRecord.h"
-#include "constants.h"
+
 
 BeginRecord::BeginRecord(int array_size, int type, int request_id, int contentLength) : Record(
         array_size, type, request_id, contentLength) {}

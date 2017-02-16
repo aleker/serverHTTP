@@ -4,10 +4,18 @@
 
 #ifndef SERWERHTTP_CONSTANTS_H
 #define SERWERHTTP_CONSTANTS_H
-
 #include <stdio.h>
+#include <fcgimisc.h>
+#include <iostream>
+#include <algorithm>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <cassert>
+#include <fastcgi.h>
 
-size_t bufsize = 1000;
+static size_t bufsize = 1000;
 
 #define FCGI_BEGIN_REQUEST       1
 #define FCGI_ABORT_REQUEST       2

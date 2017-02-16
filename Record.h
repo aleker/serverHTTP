@@ -6,7 +6,7 @@
 #define SERWERHTTP_RECORD_H
 
 #include <fastcgi.h>
-
+#include "constants.h"
 
 class Record {
 public:

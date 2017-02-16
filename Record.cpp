@@ -3,7 +3,7 @@
 //
 
 #include "Record.h"
-#include "constants.h"
+
 
 void Record::fillHeader(int shift) {
     message[VERSION + shift] = FCGI_VERSION_1;
