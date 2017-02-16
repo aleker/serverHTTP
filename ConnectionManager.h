@@ -23,6 +23,7 @@ public:
     int bindSocket();
     int fullConnection();
     int createFCGIConnection();
+    void forwardMessage(int clientSocketFd);
 };
 
 
