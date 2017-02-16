@@ -6,18 +6,17 @@
 
 using namespace std;
 
-
-
-unsigned char* sendGET(int requestId, int contentLength, unsigned char* content_data, int fd_fcgi, sockaddr_in fcgiSocket) {
+void sendGET(int requestId, int contentLength, unsigned char* content_data, ConnectionManager* connection) {
     // ----- SEND RECORDS: -----
     // TODO upper boundary for message size
-
+    sockaddr_in fcgiSocket = connection->socketStruct;
+    int fd_fcgi = connection->descriptor;
     // BEGIN_REQUEST
     BeginRecord beginRecord(HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE + HEADER_SIZE, FCGI_BEGIN_REQUEST, requestId);
     beginRecord.fillHeader(0, BEGIN_REQUEST_BODY_SIZE);
     beginRecord.fillBeginRequestBody(HEADER_SIZE, FCGI_RESPONDER, 0);
     beginRecord.fillHeader(HEADER_SIZE+BEGIN_REQUEST_BODY_SIZE, 0);
-    sendto(fd_fcgi, beginRecord.message, (size_t )beginRecord.array_size, 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+    sendto(fd_fcgi, beginRecord.message, (size_t )beginRecord.array_size, 0, (sockaddr*)&(fcgiSocket), sizeof(fcgiSocket));
 
     // FCGI_PARAMS
     StreamRecord paramRecord(HEADER_SIZE + contentLength + (8 - contentLength%8)%8 + HEADER_SIZE, FCGI_PARAMS, requestId);
@@ -31,17 +30,6 @@ unsigned char* sendGET(int requestId, int contentLength, unsigned char* content_
     stdinRecord.fillHeader(0, 0);
     sendto(fd_fcgi, stdinRecord.message, (size_t)stdinRecord.array_size, 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
 
-
-    // -----RECEIVE MESSAGE: -----
-    unsigned char from_fcgi[100], *ptr;
-    ptr = from_fcgi;
-    ssize_t readBytes = 0;
-    while ((readBytes = recv(fd_fcgi, from_fcgi, sizeof(from_fcgi), 0)) != 0) {
-        write(1, from_fcgi, (size_t)readBytes);
-    }
-    cout << endl << "CAŁA WIADOMOŚĆ PRZESŁANA? " << endl;
-
-    return ptr;
 }
 
 int main(int argc, char** argv) {
@@ -79,14 +67,15 @@ int main(int argc, char** argv) {
             content_data[Len] = 0;// make sure it's a proper string
             cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI: " << sizeof(content_data) << endl << content_data << "KONIEC WIADOMOŚCI\n\n" << endl;
 
-            // RUNNING FCGI:
+            // FCGI CONNECTION:
+            // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
             ConnectionManager fcgiConnection("127.0.0.1", 8000);
             fcgiConnection.createFCGIConnection();
-            unsigned  char *answer = sendGET(id, sizeof(content_data), content_data, fcgiConnection.descriptor, fcgiConnection.socketStruct);
+            sendGET(id, sizeof(content_data), content_data, &fcgiConnection);
+            // get message from fcgi and send it to client:
+            fcgiConnection.forwardMessage(acceptedSocketFd);
             close(fcgiConnection.descriptor);
-            // SENDING ANSWER TO CLIENT
-            // TODO POPRAWNY MESSAGE DO KLIENTA
-            ssize_t sentBytes = write(acceptedSocketFd, answer, 100);
+
             close(acceptedSocketFd);
         }
     }
