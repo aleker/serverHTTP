@@ -55,6 +55,7 @@ int ConnectionManager::fullConnection(){
 }
 
 void ConnectionManager::forwardMessage(int clientSocketFd) {
+    // TODO obsługa errorów
     unsigned int message_buf[100];
     ssize_t readBytes = 0;
     recv(descriptor, &message_buf, 8, 0);

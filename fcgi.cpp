@@ -63,11 +63,10 @@ int main(void) {
 
     FCGX_Init();
     int sock = FCGX_OpenSocket(":8000", 1024);
-    cout << "sock =  " << sock << "\n";
     FCGX_InitRequest(&request, sock, 0);
 
     while (FCGX_Accept_r(&request) >= 0) {
-        cout << "Zaakceptowałem\n";
+        cout << "request.envp = " << **request.envp << endl;
         fcgi_streambuf cin_fcgi_streambuf(request.in);
         fcgi_streambuf cout_fcgi_streambuf(request.out);
         fcgi_streambuf cerr_fcgi_streambuf(request.err);
