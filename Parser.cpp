@@ -25,11 +25,21 @@ void Parser::createGetStruct(){
     int i=0;
     int index = findSubstring("?");
     if( index!=-1){
+        index++;
         while(messageCopy[index]!=' '){
             getMsg.parameters.push_back(messageCopy[index]);
             index++;
         }
     }
+    index = findSubstring("/");
+    if(index!=-1){
+        index++;
+        while(messageCopy[index]!=' ' and messageCopy[index]!='?'){
+            getMsg.uri.push_back(messageCopy[index]);
+            index++;
+        }
+    }
+
     index = findSubstring("Host");
     if(index!=-1){
         i = index+6;
@@ -38,13 +48,19 @@ void Parser::createGetStruct(){
             i++;
         }
     }
+    index = findSubstring("favicon");
+    if(index!=-1) getMsg.favicon = 1;
+
 
     cout << "parameters: ";
     for (int k=0;k<getMsg.parameters.size();k++) cout <<getMsg.parameters[k];
-    cout << '\n\n';
+    cout << "\n\n";
     cout << "host: ";
-    for (int k=0;k<getMsg.parameters.size();k++) cout <<getMsg.host[k];
-    cout << '\n\n';
+    for (int k=0;k<getMsg.host.size();k++) cout <<getMsg.host[k];
+    cout << "\n\n";
+    cout << "uri: ";
+    for (int k=0;k<getMsg.uri.size();k++) cout <<getMsg.uri[k];
+    cout << "\n\n";
 
 }
 

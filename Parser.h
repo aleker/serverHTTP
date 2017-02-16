@@ -19,7 +19,8 @@ public:
     struct GETMessage{
         std::vector<unsigned char> parameters;
         std::vector<unsigned char> host;
-        unsigned char* connection;
+        std::vector<unsigned char> uri;
+        int favicon;
     };
 
     vector<unsigned char> messageCopy;
