@@ -7,6 +7,8 @@
 
 #include "constants.h"
 
+#include <netinet/in.h>
+
 class ConnectionManager {
 public:
     int descriptor;

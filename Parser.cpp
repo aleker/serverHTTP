@@ -1,12 +1,10 @@
 //
 // Created by tusia on 16.02.17.
 //
-
+#include <iostream>
+#include <algorithm>
 #include <string.h>
 #include "Parser.h"
-
-
-
 
 int Parser::parseBrowserMessage(unsigned char* message){
     int i = 0;
@@ -25,7 +23,7 @@ int Parser::parseBrowserMessage(unsigned char* message){
 
 }
 void Parser::createGetStruct(){
-    GETMessage getMsg;
+    GETMessage getMsg = Parser::GETMessage();
     int i=0;
     int index = findSubstring("?");
     if( index!=-1){
@@ -48,7 +46,7 @@ void Parser::createGetStruct(){
 int Parser::findSubstring(const char* substring){
     auto it = std::search(messageCopy.begin(), messageCopy.end(), substring, substring + strlen(substring));
     if (it != messageCopy.end()) {
-        int index = std::distance(messageCopy.begin(), it );
+        int index = (int) std::distance(messageCopy.begin(), it );
         return index;
     }
     else

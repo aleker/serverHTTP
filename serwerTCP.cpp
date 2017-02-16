@@ -1,3 +1,5 @@
+#include <iostream>
+#include <unistd.h>
 #include "constants.h"
 #include "StreamRecord.h"
 #include "BeginRecord.h"

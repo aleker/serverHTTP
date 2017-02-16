@@ -6,21 +6,20 @@
 #define SERWERHTTP_PARSER_H
 
 #include "constants.h"
+#include <vector>
+
 using namespace std;
 
 class Parser {
 public:
     struct GETMessage{
-        std::vector<unsigned char> parameters;
-        std::vector<unsigned char> host;
+        vector<unsigned char> parameters;
+        vector<unsigned char> host;
         unsigned char* connection;
     };
 
-
-
     vector<unsigned char> messageCopy;
     int parseBrowserMessage(unsigned char *message);
-    int parseGetMessage(unsigned char *message);
 
     Parser(){}
 

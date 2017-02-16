@@ -2,6 +2,10 @@
 // Created by tusia on 16.02.17.
 //
 
+
+#include <cstdio>
+#include <arpa/inet.h>
+#include <unistd.h>
 #include "ConnectionManager.h"
 
 ConnectionManager::ConnectionManager(const char *host,int port) : port(port), host(host) {}
