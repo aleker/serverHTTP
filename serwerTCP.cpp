@@ -6,8 +6,11 @@
 #include <arpa/inet.h>
 #include <cassert>
 #include <fastcgi.h>
-#include <fcgimisc.h>
 #include "constants.h"
+#include <fcgimisc.h>
+
+#include "StreamRecord.h"
+#include "BeginRecord.h"
 
 using namespace std;
 
@@ -60,11 +63,17 @@ unsigned char* sendGET(int requestId, int contentLength, unsigned char* content_
     // TODO upper boundary for message size
     int paddingLength = (8 - contentLength%8)%8;
     // BEGIN_REQUEST
-    unsigned char record[HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE + HEADER_SIZE];
-    fillHeader(record, 0, FCGI_BEGIN_REQUEST, requestId, BEGIN_REQUEST_BODY_SIZE, 0);
-    fillBeginRequestBody(record, HEADER_SIZE + 0, FCGI_RESPONDER, 0);
-    fillHeader(record, HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE, FCGI_BEGIN_REQUEST, requestId, BEGIN_REQUEST_BODY_SIZE, 0);
-    sendto(fd_fcgi, &record, sizeof(record), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+//    unsigned char record[HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE + HEADER_SIZE];
+//    fillHeader(record, 0, FCGI_BEGIN_REQUEST, requestId, BEGIN_REQUEST_BODY_SIZE, 0);
+//    fillBeginRequestBody(record, HEADER_SIZE + 0, FCGI_RESPONDER, 0);
+//    fillHeader(record, HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE, FCGI_BEGIN_REQUEST, requestId, BEGIN_REQUEST_BODY_SIZE, 0);
+//    sendto(fd_fcgi, &record, sizeof(record), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+
+    BeginRecord beginRecord(HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE + HEADER_SIZE, FCGI_BEGIN_REQUEST, requestId, contentLength);
+    beginRecord.fillHeader(0);
+    beginRecord.fillBeginRequestBody(HEADER_SIZE, FCGI_RESPONDER, 0);
+    beginRecord.fillHeader(HEADER_SIZE+BEGIN_REQUEST_BODY_SIZE);
+    sendto(fd_fcgi, beginRecord.message, (size_t )beginRecord.array_size, 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
 
     // FCGI_PARAMS
     unsigned char record2[HEADER_SIZE + contentLength + paddingLength + HEADER_SIZE];
@@ -77,6 +86,8 @@ unsigned char* sendGET(int requestId, int contentLength, unsigned char* content_
     unsigned char record3[HEADER_SIZE];
     fillHeader(record2, 0, FCGI_STDIN, requestId, 0, 0);
     sendto(fd_fcgi, &record3, sizeof(record3), 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+
+
 
     // -----RECEIVE MESSAGE: -----
     unsigned char from_fcgi[100], *ptr;
