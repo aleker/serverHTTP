@@ -2,6 +2,7 @@
 #include "StreamRecord.h"
 #include "BeginRecord.h"
 #include "ConnectionManager.h"
+#include "Parser.h"
 
 using namespace std;
 
@@ -49,6 +50,10 @@ int main(int argc, char** argv) {
         cerr << "Usage: " << argv[0] << " <server_ip> <server_port>" << endl;
         return -1;
     }
+    
+    Parser parser;
+    unsigned char* msg = (unsigned char *) "GET /?parameter1=elo&parameter2=sava HTTP/1.1 Host: 0.0.0.0\n Connection: keep-alive\n Upgrade-Insecure-Requests: 1\n";
+    cout << parser.parseBrowserMessage(msg) << endl;
 
     ConnectionManager serverMainConnection(argv[1],atoi(argv[2]));
     serverMainConnection.fullConnection();

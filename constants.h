@@ -56,4 +56,9 @@ static size_t bufsize = 1000;
 // FLAGS:
 #define FCGI_KEEP_CONN          1
 
+// PARSER:
+#define GET_METHOD              1
+#define POST_METHOD             2
+
+
 #endif //SERWERHTTP_CONSTANTS_H
