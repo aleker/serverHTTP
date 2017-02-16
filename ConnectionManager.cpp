@@ -3,9 +3,7 @@
 //
 
 
-#include <cstdio>
-#include <arpa/inet.h>
-#include <unistd.h>
+
 #include "ConnectionManager.h"
 
 ConnectionManager::ConnectionManager(const char *host,int port) : port(port), host(host) {}

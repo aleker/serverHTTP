@@ -5,6 +5,10 @@
 #include "BeginRecord.h"
 #include "ConnectionManager.h"
 #include "Parser.h"
+#include <algorithm>
+#include <unistd.h>
+#include <iostream>
+
 
 using namespace std;
 
@@ -42,7 +46,7 @@ int main(int argc, char** argv) {
     }
 
     Parser parser;
-    unsigned char* msg = (unsigned char *) "GET /?parameter1=elo&parameter2=sava HTTP/1.1 Host: 0.0.0.0\n Connection: keep-alive\n Upgrade-Insecure-Requests: 1\n";
+    unsigned char* msg = (unsigned char *) "GET /kasia?parameter1=elo&parameter2=sava HTTP/1.1 Host: 0.0.0.0\n Connection: keep-alive\n Upgrade-Insecure-Requests: 1\n";
     cout << parser.parseBrowserMessage(msg) << endl;
 
     ConnectionManager serverMainConnection(argv[1],atoi(argv[2]));

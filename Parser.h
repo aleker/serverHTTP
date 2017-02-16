@@ -7,6 +7,10 @@
 
 #include "constants.h"
 #include <vector>
+#include <string.h>
+#include <algorithm>
+#include <unistd.h>
+#include <iostream>
 
 using namespace std;
 
@@ -15,14 +19,14 @@ public:
     struct GETMessage{
         vector<unsigned char> parameters;
         vector<unsigned char> host;
-        unsigned char* connection;
+        vector<unsigned char> uri;
+        int favicon;
     };
 
     vector<unsigned char> messageCopy;
-    int parseBrowserMessage(unsigned char *message);
-
     Parser(){}
 
+    int parseBrowserMessage(unsigned char *message);
     int findSubstring(const char *substring);
 
     void createGetStruct();
