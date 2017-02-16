@@ -4,10 +4,10 @@
 
 #include "StreamRecord.h"
 
-StreamRecord::StreamRecord(int array_size, int type, int request_id, int contentLength) :
-        Record(array_size, type, request_id, contentLength) {}
+StreamRecord::StreamRecord(int array_size, int type, int request_id) : Record(array_size, type, request_id) {}
 
-void StreamRecord::fillContentData(int shift, unsigned char* content_data) {
+void StreamRecord::fillContentData(int shift, unsigned char* content_data, int contentLength) {
+    int paddingLength = (8 - contentLength % 8) % 8;
     for (int i = 0; i < contentLength; i++) {
         message[i + shift] = content_data[i];
     }

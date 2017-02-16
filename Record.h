@@ -14,12 +14,10 @@ public:
     unsigned char *message;
     int type;
     int request_id;
-    int contentLength;
-    int paddingLength;
 
-    Record(int array_size, int type, int request_id, int contentLength);
+    Record(int array_size, int type, int request_id);
 
-    void fillHeader(int shift);
+    void fillHeader(int shift, int contentLength);
 };
 
 
