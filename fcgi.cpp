@@ -66,7 +66,10 @@ int main(void) {
     FCGX_InitRequest(&request, sock, 0);
 
     while (FCGX_Accept_r(&request) >= 0) {
-        cout << "request.envp = " << **request.envp << endl;
+        cout << "request.out = " << request.out << endl;
+        const char * uri = FCGX_GetParam("REQUEST_URI", request.envp);
+        cout << uri << endl;
+
         fcgi_streambuf cin_fcgi_streambuf(request.in);
         fcgi_streambuf cout_fcgi_streambuf(request.out);
         fcgi_streambuf cerr_fcgi_streambuf(request.err);
@@ -76,7 +79,7 @@ int main(void) {
         cerr.rdbuf(&cerr_fcgi_streambuf);
 
         // get the request URI
-        const char * uri = FCGX_GetParam("REQUEST_URI", request.envp);
+
 
         string content = get_request_content(request);
 

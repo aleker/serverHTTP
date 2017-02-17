@@ -19,18 +19,23 @@ public:
 
     int parseBrowserMessage(unsigned char* message);
     void createRecords(vector<Record> *records, int request_id, int role);
+    int requestMethod;
 
 private:
-    vector<unsigned char> parameters;
-    vector<unsigned char> host;
-    vector<unsigned char> uri;
 
-    vector<unsigned char> messageCopy;
+    vector<std::string> parameters;
+    vector<std::string> values;
+    std::string query;
+    std::string host;
+    std::string uri;
 
-    int findSubstring(const char *substring);
-    void createGetStruct();
+    string messageCopy;
 
 
+
+    void prepareParamaters();
+
+    int findSubstring(string substring, string mainString);
 };
 
 
