@@ -24,10 +24,10 @@ int Parser::parseBrowserMessage(unsigned char* message){
     if(findSubstring("favicon", messageCopy) != -1)
         return -1;
     else if (findSubstring("GET ", messageCopy) != -1){
-        requestMethod = GET_METHOD;
+        requestMethod = "GET";
     }
     else if (findSubstring("POST ", messageCopy) != -1){
-        requestMethod = POST_METHOD;
+        requestMethod = "POST";
     }
 
 
@@ -64,6 +64,17 @@ void Parser::prepareParamaters() {
             serverProtocol = line.substr(index+1, line.size()-index-1);
         }
     }
+}
+
+int Parser::createParamsContentData() {
+    vector<string> CGI_values = {
+            "CGI/1.1",
+            serverProtocol,
+            requestMethod,
+            uri,
+            query
+            // TODO CONTENT_TYPE i CONTENT_LENGTH
+    };
 }
 
 int Parser::findSubstring(string substring, string mainString){

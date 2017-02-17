@@ -19,7 +19,7 @@ public:
 
     int parseBrowserMessage(unsigned char* message);
     void createRecords(vector<Record> *records, int request_id, int role);
-    int requestMethod;
+    string requestMethod;
 
 private:
 
@@ -36,6 +36,8 @@ private:
     void prepareParamaters();
 
     int findSubstring(string substring, string mainString);
+
+    int createParamsContentData();
 };
 
 
