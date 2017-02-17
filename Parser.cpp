@@ -30,6 +30,7 @@ int Parser::parseBrowserMessage(unsigned char* message){
         requestMethod = POST_METHOD;
     }
 
+
     prepareParamaters();
     cout << "parameters prepared" <<endl;
     return 0;
@@ -42,10 +43,27 @@ void Parser::prepareParamaters() {
 
     while (std::getline(f, line)) {
         int index = findSubstring(":", line);
-        if (index!=-1){
-            parameters.push_back(line.substr(0,index));
-            values.push_back(line.substr(index+2, line.size()-index-2));
-        } else continue;
+        if (index != -1) {
+            std::string parameter = line.substr(0, index);
+            for (int i = 0; i < parameter.length(); i++) {
+                if (parameter[i] == '-') parameter.replace(i, 1, "_");
+            }
+            std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::toupper);
+            parameter.insert(0, "HTTP_");
+            cout << parameter << endl;
+            parameters.push_back(parameter);
+            values.push_back(line.substr(index + 2, line.size() - index - 2));
+        } else if (line.size() > 1) {
+            index = findSubstring("/", line);
+            bool queryStart = false;
+            while (line[index] != ' ') {
+                if(line[index] == '?') queryStart = true;
+                if(queryStart) query.push_back(line[index]);
+                uri.push_back(line[index]);
+                index++;
+            }
+            serverProtocol = line.substr(index+1, line.size()-index-1);
+        }
     }
 }
 
@@ -58,15 +76,18 @@ int Parser::findSubstring(string substring, string mainString){
 }
 
 void Parser::createRecords(vector<Record>* records, int request_id, int role) {
+    // BEGIN
     BeginRecord beginRecord(HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE, FCGI_BEGIN_REQUEST, request_id);
     beginRecord.fill(role);
 
-    unsigned char params_data[] = "";  // params_data
+    // RECORD
+    unsigned char params_data[] = {};  // params_data
     int params_size = sizeof(params_data);              // params_size
     int padding_size = (8 - params_size%8)%8;           // gdzieś musi zczytać message size z tych wektorów
     StreamRecord paramRecord(HEADER_SIZE + params_size + padding_size + HEADER_SIZE, FCGI_PARAMS, request_id);
     paramRecord.fill(params_size, params_data);
 
+    // STDIN
     unsigned char stdin_data[] = {};                    // stdin_data
     int stdin_size = 0;                                 // stdin_size
     padding_size = (8 - stdin_size%8)%8;

@@ -26,8 +26,8 @@ private:
     vector<std::string> parameters;
     vector<std::string> values;
     std::string query;
-    std::string host;
     std::string uri;
+    std::string serverProtocol;
 
     string messageCopy;
 
