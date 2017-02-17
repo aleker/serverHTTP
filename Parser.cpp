@@ -50,7 +50,6 @@ void Parser::prepareParamaters() {
             }
             std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::toupper);
             parameter.insert(0, "HTTP_");
-            cout << parameter << endl;
             parameters.push_back(parameter);
             values.push_back(line.substr(index + 2, line.size() - index - 2));
         } else if (line.size() > 1) {
