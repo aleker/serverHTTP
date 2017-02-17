@@ -13,6 +13,8 @@ public:
     BeginRecord(int array_size, int type, int request_id);
 
     void fillBeginRequestBody(int shift, int role, int flags);
+
+    void fill(int role);
 };
 
 

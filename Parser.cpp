@@ -74,3 +74,24 @@ int Parser::findSubstring(const char* substring){
     else
         return -1;
 }
+
+void Parser::createRecords(vector<Record>* records, int request_id, int role) {
+    BeginRecord beginRecord(HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE + HEADER_SIZE, FCGI_BEGIN_REQUEST, request_id);
+    beginRecord.fill(role);
+
+    unsigned char params_data[] = {}; // params_data
+    int params_size = 0;// params_size
+    int padding_size = (8 - params_size%8)%8;         // gdzieś musi zczytać message size z tych wektorów
+    StreamRecord paramRecord(HEADER_SIZE + params_size + padding_size + HEADER_SIZE, FCGI_PARAMS, request_id);
+    paramRecord.fill(params_size, params_data);
+
+    unsigned char stdin_data[] = {}; // stdin_data
+    int stdin_size = 0;// stdin_size
+    padding_size = (8 - stdin_size%8)%8;
+    StreamRecord stdinRecord(HEADER_SIZE  + stdin_size + padding_size + HEADER_SIZE, FCGI_STDIN, request_id);
+    stdinRecord.fill(stdin_size, stdin_data);
+
+    records->push_back(beginRecord);
+    records->push_back(paramRecord);
+    records->push_back(stdinRecord);
+}

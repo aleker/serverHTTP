@@ -44,40 +44,27 @@ int HTTPManager::acceptConnection(ConnectionManager *client) {
 int HTTPManager::getMessage(ConnectionManager* client, unsigned char* content_data) {
     ssize_t Len = read(client->descriptor, content_data, bufsize);
     content_data[Len] = 0;// make sure it's a proper string
-    cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI: " << Len << endl << content_data << "KONIEC WIADOMOŚCI\n\n" << endl;
+    cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI (DŁ): " << Len << endl << content_data << "KONIEC WIADOMOŚCI\n\n" << endl;
 
     return 0;
 }
 
-void HTTPManager::sendMessage(ConnectionManager* receiver, unsigned char* message, int message_size) {
+void HTTPManager::sendMessage(ConnectionManager* receiver, unsigned char* message) {
+    // TODO upper boundary for message size
     std::vector<Record> records;
     Parser parser;
+    // PARSING MESSAGE
     parser.parseBrowserMessage(message);
 
-    //------------------------------------------------------
-    // ----- SEND RECORDS: -----
-    // TODO RANDOM ID
-    int requestId = 300;
-    // TODO upper boundary for message size
-    sockaddr_in fcgiSocket = receiver->socketStruct;
-    int fd_fcgi = receiver->descriptor;
-    // BEGIN_REQUEST
-    BeginRecord beginRecord(HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE + HEADER_SIZE, FCGI_BEGIN_REQUEST, requestId);
-    beginRecord.fillHeader(0, BEGIN_REQUEST_BODY_SIZE);
-    beginRecord.fillBeginRequestBody(HEADER_SIZE, FCGI_RESPONDER, 0);
-    beginRecord.fillHeader(HEADER_SIZE+BEGIN_REQUEST_BODY_SIZE, 0);
-    sendto(fd_fcgi, beginRecord.message, (size_t )beginRecord.array_size, 0, (sockaddr*)&(fcgiSocket), sizeof(fcgiSocket));
+    // CREATE RECORDS
+    int request_id = 300;                                           // TODO RANDOM ID
+    parser.createRecords(&records, request_id, FCGI_RESPONDER);     // TODO rola
 
-    // FCGI_PARAMS
-    StreamRecord paramRecord(HEADER_SIZE + message_size + (8 - message_size%8)%8 + HEADER_SIZE, FCGI_PARAMS, requestId);
-    paramRecord.fillHeader(0, message_size);
-    paramRecord.fillContentData(HEADER_SIZE, message, message_size);
-    paramRecord.fillHeader(HEADER_SIZE + message_size + (8 - message_size%8)%8, 0);
-    sendto(fd_fcgi, paramRecord.message, (size_t)paramRecord.array_size, 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+    // SENDING RECORDS
+    for (Record &record: records) {
+        sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
+               (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
 
-    // SEND DATA3
-    StreamRecord stdinRecord(HEADER_SIZE, FCGI_STDIN, requestId);
-    stdinRecord.fillHeader(0, 0);
-    sendto(fd_fcgi, stdinRecord.message, (size_t)stdinRecord.array_size, 0, (sockaddr*)&fcgiSocket, sizeof(fcgiSocket));
+    }
 
 }

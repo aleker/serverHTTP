@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
             fcgiConnection.createConnection();
 
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
-            serverMainConnection.sendMessage(&fcgiConnection, message, sizeof(message));
+            serverMainConnection.sendMessage(&fcgiConnection, message);
 
             // SENDING MESSAGE FROM FCGI TO CLIENT
             fcgiConnection.sendMessage(clientConnection.descriptor);

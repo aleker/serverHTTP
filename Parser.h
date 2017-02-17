@@ -18,6 +18,7 @@ public:
     Parser(){}
 
     int parseBrowserMessage(unsigned char* message);
+    void createRecords(vector<Record> *records, int request_id, int role);
 
 private:
     vector<unsigned char> parameters;
@@ -28,6 +29,7 @@ private:
 
     int findSubstring(const char *substring);
     void createGetStruct();
+
 
 };
 

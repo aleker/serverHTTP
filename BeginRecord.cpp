@@ -15,3 +15,9 @@ void BeginRecord::fillBeginRequestBody(int shift, int role, int flags) {
         message[i] = 0;
     }
 }
+
+void BeginRecord::fill(int role) {
+    fillHeader(0, BEGIN_REQUEST_BODY_SIZE);
+    fillBeginRequestBody(HEADER_SIZE, role, 0);
+    fillHeader(HEADER_SIZE+BEGIN_REQUEST_BODY_SIZE, 0);
+}

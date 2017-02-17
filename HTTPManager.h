@@ -16,7 +16,7 @@ public:
     int prepareServerSocket();
     int acceptConnection(ConnectionManager *client);
     int getMessage(ConnectionManager *client, unsigned char *content_data);
-    void sendMessage(ConnectionManager *receiver, unsigned char *message, int message_size);
+    void sendMessage(ConnectionManager *receiver, unsigned char *message);
 
 private:
     int bindSocket();
