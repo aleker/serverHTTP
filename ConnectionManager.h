@@ -17,23 +17,11 @@ public:
     ConnectionManager(){};
     ConnectionManager(const char *host, int port);
 
-    int prepareServerSocket();
-    int createConnection();
-    int acceptConnection(ConnectionManager *client);
-    void forwardMessage(int clientSocketFd);
-    int getMessage(ConnectionManager *client, unsigned char *message);
-    void sendMessage(ConnectionManager *receiver, unsigned char *message, int message_size);
-
-
-private:
+protected:
     int port;
     const char* host;
-
     int createSocket();
     void createSockaddr();
-    int connectSocket();
-    int bindSocket();
-
 
 };
 

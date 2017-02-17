@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include "constants.h"
-#include "ConnectionManager.h"
+#include "HTTPManager.h"
+#include "FCGIManager.h"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    ConnectionManager serverMainConnection(argv[1],atoi(argv[2]));
+    HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
     serverMainConnection.prepareServerSocket();      // prepare server socket
 
     if (listen(serverMainConnection.descriptor, 10) == 0) {
@@ -26,14 +27,14 @@ int main(int argc, char** argv) {
 
             // FCGI CONNECTION:
             // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
-            ConnectionManager fcgiConnection("127.0.0.1", 8000);
+            FCGIManager fcgiConnection("127.0.0.1", 8000);
             fcgiConnection.createConnection();
 
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
             serverMainConnection.sendMessage(&fcgiConnection, message, sizeof(message));
 
             // SENDING MESSAGE FROM FCGI TO CLIENT
-            fcgiConnection.forwardMessage(clientConnection.descriptor);
+            fcgiConnection.sendMessage(clientConnection.descriptor);
 
             close(fcgiConnection.descriptor);
             close(clientConnection.descriptor);
