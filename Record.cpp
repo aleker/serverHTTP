@@ -3,7 +3,7 @@
 //
 
 #include "Record.h"
-
+#include <fastcgi.h>
 
 Record::Record(int array_size, int type, int request_id) : array_size(array_size), type(type), request_id(request_id) {
     this->message = new unsigned char[array_size];

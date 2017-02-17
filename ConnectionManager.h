@@ -6,12 +6,7 @@
 #define SERWERHTTP_CONNECTIONMANAGER_H
 
 #include <netinet/in.h>
-#include "constants.h"
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <cstdio>
 
-#include <netinet/in.h>
 
 class ConnectionManager {
 public:

@@ -5,6 +5,9 @@
 
 
 #include "ConnectionManager.h"
+#include "constants.h"
+#include <unistd.h>
+#include <arpa/inet.h>
 
 ConnectionManager::ConnectionManager(const char *host,int port) : port(port), host(host) {}
 

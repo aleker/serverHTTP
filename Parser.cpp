@@ -3,6 +3,11 @@
 //
 
 #include "Parser.h"
+#include <string.h>
+#include <algorithm>
+#include <unistd.h>
+#include <iostream>
+
 // TODO usunąć messageCopy z klasy
 // TODO stworzyć gotowe rekordy do wysłania
 

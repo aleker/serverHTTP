@@ -1,13 +1,9 @@
-#include <iostream>
 #include <unistd.h>
 #include "constants.h"
 #include "StreamRecord.h"
 #include "BeginRecord.h"
 #include "ConnectionManager.h"
 #include "Parser.h"
-#include <algorithm>
-#include <unistd.h>
-#include <iostream>
 
 
 using namespace std;
@@ -79,6 +75,7 @@ int main(int argc, char** argv) {
             fcgiConnection.createFCGIConnection();
             sendGET(id, sizeof(content_data), content_data, &fcgiConnection);
             // get message from fcgi and send it to client:
+
 
             fcgiConnection.forwardMessage(acceptedSocketFd);
             close(fcgiConnection.descriptor);
