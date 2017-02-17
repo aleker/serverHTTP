@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <unistd.h>
 #include <iostream>
+#include <netinet/in.h>
 
 // TODO usunąć messageCopy z klasy
 // TODO stworzyć gotowe rekordy do wysłania
@@ -72,5 +73,4 @@ int Parser::findSubstring(const char* substring){
     }
     else
         return -1;
-
 }

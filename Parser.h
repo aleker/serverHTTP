@@ -6,6 +6,8 @@
 #define SERWERHTTP_PARSER_H
 
 #include "constants.h"
+#include "StreamRecord.h"
+#include "BeginRecord.h"
 #include <vector>
 
 
@@ -13,17 +15,20 @@ using namespace std;
 
 class Parser {
 public:
+    Parser(){}
+
+    int parseBrowserMessage(unsigned char* message);
+
+private:
     vector<unsigned char> parameters;
     vector<unsigned char> host;
     vector<unsigned char> uri;
 
     vector<unsigned char> messageCopy;
-    Parser(){}
 
-    int parseBrowserMessage(unsigned char* message);
     int findSubstring(const char *substring);
-
     void createGetStruct();
+
 };
 
 
