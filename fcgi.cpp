@@ -67,8 +67,6 @@ int main(void) {
 
     while (FCGX_Accept_r(&request) >= 0) {
         cout << "request.out = " << request.out << endl;
-        const char * uri = FCGX_GetParam("REQUEST_URI", request.envp);
-        cout << uri << endl;
 
         fcgi_streambuf cin_fcgi_streambuf(request.in);
         fcgi_streambuf cout_fcgi_streambuf(request.out);
@@ -79,7 +77,7 @@ int main(void) {
         cerr.rdbuf(&cerr_fcgi_streambuf);
 
         // get the request URI
-
+        const char * uri = FCGX_GetParam("REQUEST_URI", request.envp);
 
         string content = get_request_content(request);
 

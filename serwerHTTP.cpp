@@ -2,8 +2,14 @@
 #include "constants.h"
 #include "HTTPManager.h"
 #include "FCGIManager.h"
+#include <thread>
+#include <error.h>
+#include <unordered_set>
 
 using namespace std;
+
+// client sockets
+std::unordered_set<int> clientFds;
 
 int main(int argc, char** argv) {
     if (argc < 3) {
@@ -15,15 +21,30 @@ int main(int argc, char** argv) {
     HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
     serverMainConnection.prepareServerSocket();      // prepare server socket
 
-    if (listen(serverMainConnection.descriptor, 10) == 0) {
-        while (true) {
+    int res = listen(serverMainConnection.descriptor, 1);
+    if (res) error(1, errno, "listen failed!");
+
+    std::thread t_clients([=] {
+        while(1) {
             // CLIENT CONNECTION:
             ConnectionManager clientConnection = ConnectionManager();
             serverMainConnection.acceptConnection(&clientConnection);
+            clientFds.insert(clientConnection);
+        }
+    });
+    std::thread t_messages_from_clients([=] {
+       while(1){
+           // READING MESSAGE FROM CLIENT:
+           unsigned char message[bufsize];
+           serverMainConnection.getMessage(&clientConnection, message);
+       }
+    });
 
-            // READING MESSAGE FROM CLIENT:
-            unsigned char message[bufsize];
-            serverMainConnection.getMessage(&clientConnection, message);
+    if (listen(serverMainConnection.descriptor, 10) == 0) {
+        while (true) {
+
+
+
 
             // FCGI CONNECTION:
             // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym

@@ -88,6 +88,7 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
 
     // STDIN
     unsigned char stdin_data[] = {};                    // stdin_data
+    cout << stdin_data << endl;
     int stdin_size = 0;                                 // stdin_size
     padding_size = (8 - stdin_size%8)%8;
     StreamRecord stdinRecord(HEADER_SIZE  + stdin_size + padding_size + HEADER_SIZE, FCGI_STDIN, request_id);

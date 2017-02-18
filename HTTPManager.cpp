@@ -60,11 +60,13 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, unsigned char* messag
     int request_id = 300;                                           // TODO RANDOM ID
     parser.createRecords(&records, request_id, FCGI_RESPONDER);     // TODO rola
 
+    cout << "RECORDS CREATED \n";
     // SENDING RECORDS
     for (Record &record: records) {
         sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
                (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
 
     }
+    cout << "Records sent \n";
 
 }
