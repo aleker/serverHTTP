@@ -30,7 +30,7 @@ int HTTPManager::prepareServerSocket(){
     return 0;
 }
 
-int HTTPManager::acceptConnection(ConnectionManager *client) {
+int HTTPManager::acceptConnection(ConnectionManager *client) const {
     int enable = 1;
     client->descriptor = accept(descriptor, (sockaddr*)&client->socketStruct, &client->socketSize);
     if (client->descriptor == -1) {
@@ -41,7 +41,7 @@ int HTTPManager::acceptConnection(ConnectionManager *client) {
     return 0;
 }
 
-int HTTPManager::getMessage(ConnectionManager* client, unsigned char* content_data) {
+int HTTPManager::getMessage(ConnectionManager* client, unsigned char* content_data) const {
     ssize_t Len = read(client->descriptor, content_data, bufsize);
     content_data[Len] = 0;// make sure it's a proper string
     cout<< "\nWIADOMOŚĆ OD PRZEGLĄDARKI (DŁ): " << Len << endl << content_data << "KONIEC WIADOMOŚCI\n\n" << endl;
@@ -49,7 +49,7 @@ int HTTPManager::getMessage(ConnectionManager* client, unsigned char* content_da
     return 0;
 }
 
-void HTTPManager::sendMessage(ConnectionManager* receiver, unsigned char* message) {
+void HTTPManager::sendMessage(ConnectionManager* receiver, unsigned char* message) const {
     // TODO upper boundary for message size
     std::vector<Record> records;
     Parser parser;

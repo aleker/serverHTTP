@@ -29,22 +29,9 @@ int main(int argc, char** argv) {
             // CLIENT CONNECTION:
             ConnectionManager clientConnection = ConnectionManager();
             serverMainConnection.acceptConnection(&clientConnection);
-            clientFds.insert(clientConnection);
-        }
-    });
-    std::thread t_messages_from_clients([=] {
-       while(1){
-           // READING MESSAGE FROM CLIENT:
-           unsigned char message[bufsize];
-           serverMainConnection.getMessage(&clientConnection, message);
-       }
-    });
-
-    if (listen(serverMainConnection.descriptor, 10) == 0) {
-        while (true) {
-
-
-
+            clientFds.insert(clientConnection.descriptor);
+            unsigned char message[bufsize];
+            serverMainConnection.getMessage(&clientConnection, message);
 
             // FCGI CONNECTION:
             // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
@@ -60,8 +47,11 @@ int main(int argc, char** argv) {
             close(fcgiConnection.descriptor);
             close(clientConnection.descriptor);
         }
-    }
-    close(serverMainConnection.descriptor);
+    });
+
+t_clients.join();
+
+//    close(serverMainConnection.descriptor);
 }
 
 // https://fossies.org/linux/FCGI/fcgiapp.c#l_2190

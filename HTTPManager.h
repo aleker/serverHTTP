@@ -14,9 +14,9 @@ public:
     HTTPManager(const char *host, int port);
 
     int prepareServerSocket();
-    int acceptConnection(ConnectionManager *client);
-    int getMessage(ConnectionManager *client, unsigned char *content_data);
-    void sendMessage(ConnectionManager *receiver, unsigned char *message);
+    int acceptConnection(ConnectionManager *client) const;
+    int getMessage(ConnectionManager *client, unsigned char *content_data) const;
+    void sendMessage(ConnectionManager *receiver, unsigned char *message) const;
 
 private:
     int bindSocket();
