@@ -25,6 +25,7 @@ private:
 
     vector<std::string> parameters;
     vector<std::string> values;
+    vector<std::string> CGI_values;
     std::string query;
     std::string uri;
     std::string serverProtocol;
@@ -33,11 +34,13 @@ private:
 
 
 
-    void prepareParamaters();
+    void prepareAdditionalParamaters();
 
     int findSubstring(string substring, string mainString);
 
-    int createParamsContentData();
+    int prepareStandardParameters();
+
+    int mergeIntoOneMessage(string *content_data);
 };
 
 

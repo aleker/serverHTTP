@@ -61,8 +61,9 @@ static std::vector<std::string> CGI_params = {
         "REQUEST_METHOD",       // POST vs GET
         "REQUEST_URI",
         "QUERY_STRING",         // the part of URL after ? character (GET)
+        "CONTENT_LENGTH",
         "CONTENT_TYPE",
-        "CONTENT_LENGTH"
+
 };
 
 #endif //SERWERHTTP_CONSTANTS_H

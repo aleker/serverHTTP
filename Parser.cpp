@@ -15,29 +15,15 @@
 // TODO usunąć messageCopy z klasy
 // TODO stworzyć gotowe rekordy do wysłania
 
-int Parser::parseBrowserMessage(unsigned char* message){
-    int i = 0;
-    while(message[i]!='\0') {
-        messageCopy.push_back(message[i]);
-        i++;
+int Parser::findSubstring(string substring, string mainString){
+    std::size_t found = mainString.find(substring);
+    if (found!=std::string::npos){
+        return (int) found;
     }
-    if(findSubstring("favicon", messageCopy) != -1)
-        return -1;
-    else if (findSubstring("GET ", messageCopy) != -1){
-        requestMethod = "GET";
-    }
-    else if (findSubstring("POST ", messageCopy) != -1){
-        requestMethod = "POST";
-    }
-
-
-    prepareParamaters();
-    cout << "parameters prepared" <<endl;
-    return 0;
-
+    return -1;
 }
 
-void Parser::prepareParamaters() {
+void Parser::prepareAdditionalParamaters() {
     std::istringstream f(messageCopy);
     std::string line;
 
@@ -66,42 +52,104 @@ void Parser::prepareParamaters() {
     }
 }
 
-int Parser::createParamsContentData() {
-    vector<string> CGI_values = {
-            "CGI/1.1",
-            serverProtocol,
-            requestMethod,
-            uri,
-            query
-            // TODO CONTENT_TYPE i CONTENT_LENGTH
-    };
+int Parser::prepareStandardParameters() {
+    CGI_values.push_back("CGI/1.1");
+    CGI_values.push_back(serverProtocol);
+    CGI_values.push_back(requestMethod);
+    CGI_values.push_back(uri);
+    CGI_values.push_back(query);
+    for (int i = 0; i < parameters.size(); i++) {
+        if (parameters[i] == "HTTP_CONTENT_LENGTH") {
+            CGI_values.push_back(values[i]);
+        }
+        if (parameters[i] == "HTTP_CONTENT_TYPE") {
+            CGI_values.push_back(values[i]);
+            return 0;
+        }
+    }
+    return 0;
 }
 
-int Parser::findSubstring(string substring, string mainString){
-    std::size_t found = mainString.find(substring);
-    if (found!=std::string::npos){
-        return (int) found;
+int Parser::parseBrowserMessage(unsigned char* message){
+    int i = 0;
+    while(message[i]!='\0') {
+        messageCopy.push_back(message[i]);
+        i++;
     }
-    return -1;
+    if(findSubstring("favicon", messageCopy) != -1)
+        return -1;
+    else if (findSubstring("GET ", messageCopy) != -1){
+        requestMethod = "GET";
+    }
+    else if (findSubstring("POST ", messageCopy) != -1){
+        requestMethod = "POST";
+    }
+    prepareAdditionalParamaters();
+    prepareStandardParameters();
+    return 0;
+}
+
+int Parser::mergeIntoOneMessage(string* content_data) {
+    // STANDARD PARAMETERS
+    for (int i = 0; i < CGI_values.size(); i++) {
+        try {
+            content_data->append("\r");
+            content_data->append(CGI_params[i]);
+            content_data->append(CGI_values[i]);
+
+        }
+        catch (exception& e){
+            cout << e.what() << "\n";
+            perror("Error merging parameters into one message");
+            return -1;
+        }
+    }
+
+    // ADDITIONAL PARAMETERS
+    for (int i = 0; i < parameters.size(); i++) {
+        content_data->append("\r");
+        content_data->append(parameters[i]);
+        content_data->append(values[i]);
+    }
+    return 0;
+}
+
+unsigned char* fromStringToUnsignedCharArray(string original_data, unsigned char* output) {
+    for (int i = 0; i < original_data.length(); i++) {
+        output[i] = (unsigned char) original_data[i];
+    }
+    output[original_data.length()] = 0;     // proper end of string
 }
 
 void Parser::createRecords(vector<Record>* records, int request_id, int role) {
+    string contentData;
+    mergeIntoOneMessage(&contentData);
+    if (contentData[contentData.length()-1] == '\r') contentData.erase(contentData.begin() + contentData.length() - 1);
+
     // BEGIN
     BeginRecord beginRecord(HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE, FCGI_BEGIN_REQUEST, request_id);
     beginRecord.fill(role);
 
     // RECORD
-    unsigned char params_data[] = {};  // params_data
-    int params_size = sizeof(params_data);              // params_size
-    int padding_size = (8 - params_size%8)%8;           // gdzieś musi zczytać message size z tych wektorów
-    StreamRecord paramRecord(HEADER_SIZE + params_size + padding_size + HEADER_SIZE, FCGI_PARAMS, request_id);
+    int params_size = contentData.length()+1;
+    if (contentData.length() == 0)  params_size = 0;
+    unsigned char params_data[params_size];
+    fromStringToUnsignedCharArray(contentData, &params_data[0]);
+    cout << "sizeof(params_data) = " << sizeof(params_data) << "\n";
+    int padding_size = (8 - params_size%8)%8;
+    int record_size = HEADER_SIZE + params_size + padding_size + HEADER_SIZE;
+    if (params_size == 0) record_size -= HEADER_SIZE;
+    StreamRecord paramRecord(record_size, FCGI_PARAMS, request_id);
     paramRecord.fill(params_size, params_data);
 
     // STDIN
-    unsigned char stdin_data[] = {};                    // stdin_data
-    int stdin_size = 0;                                 // stdin_size
+    // TODO stdin_data przypisać wartość!
+    unsigned char stdin_data[] = {};
+    int stdin_size = sizeof(stdin_data);
     padding_size = (8 - stdin_size%8)%8;
-    StreamRecord stdinRecord(HEADER_SIZE  + stdin_size + padding_size + HEADER_SIZE, FCGI_STDIN, request_id);
+    record_size = HEADER_SIZE + stdin_size + padding_size + HEADER_SIZE;
+    if (stdin_size == 0) record_size -= HEADER_SIZE;
+    StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
     stdinRecord.fill(stdin_size, stdin_data);
 
     records->push_back(beginRecord);
