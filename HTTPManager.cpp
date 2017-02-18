@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <vector>
+#include <fstream>
 #include "HTTPManager.h"
 #include "constants.h"
 #include "Record.h"
@@ -57,14 +58,16 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, unsigned char* messag
     parser.parseBrowserMessage(message);
 
     // CREATE RECORDS
-    int request_id = 300;                                           // TODO RANDOM ID
+    int request_id = 1;                                           // TODO RANDOM ID
     parser.createRecords(&records, request_id, FCGI_RESPONDER);     // TODO rola
 
+    std::ofstream outfile ("dear_fcgi.txt",std::ofstream::binary);
     // SENDING RECORDS
     for (Record &record: records) {
         sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
                (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
-
+        //write(1, record.message, record.array_size);
+        outfile.write((const char *) record.message, record.array_size);
     }
-
+    outfile.close();
 }
