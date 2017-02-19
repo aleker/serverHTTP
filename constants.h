@@ -5,6 +5,8 @@
 #ifndef SERWERHTTP_CONSTANTS_H
 #define SERWERHTTP_CONSTANTS_H
 #include <iostream>
+#include <vector>
+#include <string>
 
 static const size_t bufsize = 1000;
 static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
@@ -52,5 +54,15 @@ static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
 #define GET_METHOD              1
 #define POST_METHOD             2
 
+
+static std::vector<std::string> CGI_params = {
+        "GATEWAY_INTERFACE",    // CGI/1.1
+        "SERVER_PROTOCOL",      // HTTP/1.1
+        "REQUEST_METHOD",       // POST vs GET
+        "REQUEST_URI",
+        "QUERY_STRING",         // the part of URL after ? character (GET)
+        "CONTENT_LENGTH",
+        "CONTENT_TYPE",
+};
 
 #endif //SERWERHTTP_CONSTANTS_H
