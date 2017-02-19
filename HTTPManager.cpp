@@ -63,11 +63,13 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, unsigned char* messag
 
     std::ofstream outfile ("dear_fcgi.txt",std::ofstream::binary);
     // SENDING RECORDS
+    cout << "***MESSAGE FROM HTTP TO FCGI\n";
     for (Record &record: records) {
         sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
                (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
-        //write(1, record.message, record.array_size);
+        write(1, record.message, (size_t) record.array_size);
         outfile.write((const char *) record.message, record.array_size);
     }
+    cout << "***END OF MESSAGE FROM HTTP TO FCGI\n";
     outfile.close();
 }

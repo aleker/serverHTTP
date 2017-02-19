@@ -93,7 +93,14 @@ int Parser::mergeIntoOneMessage(string* content_data) {
     // STANDARD PARAMETERS
     for (int i = 0; i < CGI_values.size(); i++) {
         try {
-            //content_data->append("\r");
+            if (CGI_values[i][CGI_values[i].length() - 1] == '\r')
+                CGI_values[i].erase(CGI_values[i].begin() + CGI_values[i].length() - 1);
+            int size = (int)CGI_params[i].length();
+            char size2 = char(size);
+            content_data->push_back(size2);
+            size = (int)CGI_values[i].length();
+            size2 = char(size);
+            content_data->push_back(size2);
             content_data->append(CGI_params[i]);
             content_data->append(CGI_values[i]);
 
@@ -107,7 +114,16 @@ int Parser::mergeIntoOneMessage(string* content_data) {
 
     // ADDITIONAL PARAMETERS
     for (int i = 0; i < parameters.size(); i++) {
-        //content_data->append("\r");
+        if (parameters[i][parameters[i].length() - 1] == '\r')
+            parameters[i].erase(parameters[i].begin() + parameters[i].length() - 1);
+        if (values[i][values[i].length() - 1] == '\r')
+            values[i].erase(values[i].begin() + values[i].length() - 1);
+        int size = (int)parameters[i].length();
+        char size2 = char(size);
+        content_data->push_back(size2);
+        size = (int)values[i].length();
+        size2 = char(size);
+        content_data->push_back(size2);
         content_data->append(parameters[i]);
         content_data->append(values[i]);
     }
@@ -123,10 +139,10 @@ unsigned char* fromStringToUnsignedCharArray(string original_data, unsigned char
 
 void Parser::createRecords(vector<Record>* records, int request_id, int role) {
     string contentData;
-    //mergeIntoOneMessage(&contentData);
-    contentData.append("GATEWAY_INTERFACECGI/1.1SERVER_SOFTWAREnginxQUERY_STRINGREQUEST_METHODGETCONTENT_TYPECONTENT_LENGTHSCRIPT_FILENAME/etc/nginx/html/SCRIPT_NAME/REQUEST_URI/DOCUMENT_URI/DOCUMENT_ROOT/etc/nginx/htmlSERVER_PROTOCOLHTTP/1.1\tREMOTE_ADDR127.0.0.1REMOTE_PORT46910\tSERVER_ADDR127.0.0.1SERVER_PORT80\tSERVER_NAMElocalhost");
-    contentData.append("\tHTTP_HOST0.0.0.0DHTTP_USER_AGENTMozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0?HTTP_ACCEPTtext/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8HTTP_ACCEPT_LANGUAGEen-US,en;q=0.5HTTP_ACCEPT_ENCODINGgzip, deflate");
-    contentData.append("HTTP_CONNECTIONkeep-aliveHTTP_UPGRADE_INSECURE_REQUESTS1HTTP_IF_MODIFIED_SINCEFri, 10 Feb 2017 11:31:30 GMTHTTP_IF_NONE_MATCH\"589da492-264\"\tHTTP_CACHE_CONTROLmax-age=0");
+    mergeIntoOneMessage(&contentData);
+    //contentData.append("GATEWAY_INTERFACECGI/1.1SERVER_SOFTWAREnginxQUERY_STRINGREQUEST_METHODGETCONTENT_TYPECONTENT_LENGTHSCRIPT_FILENAME/etc/nginx/html/SCRIPT_NAME/REQUEST_URI/DOCUMENT_URI/DOCUMENT_ROOT/etc/nginx/htmlSERVER_PROTOCOLHTTP/1.1\tREMOTE_ADDR127.0.0.1REMOTE_PORT46910\tSERVER_ADDR127.0.0.1SERVER_PORT80\tSERVER_NAMElocalhost");
+    //contentData.append("\tHTTP_HOST0.0.0.0DHTTP_USER_AGENTMozilla/5.0 (X11; Linux x86_64; rv:51.0) Gecko/20100101 Firefox/51.0?HTTP_ACCEPTtext/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8HTTP_ACCEPT_LANGUAGEen-US,en;q=0.5HTTP_ACCEPT_ENCODINGgzip, deflate");
+    //contentData.append("HTTP_CONNECTIONkeep-aliveHTTP_UPGRADE_INSECURE_REQUESTS1HTTP_IF_MODIFIED_SINCEFri, 10 Feb 2017 11:31:30 GMTHTTP_IF_NONE_MATCH\"589da492-264\"\tHTTP_CACHE_CONTROLmax-age=0");
     if (contentData[contentData.length()-1] == '\r') contentData.erase(contentData.begin() + contentData.length() - 1);
 
     // BEGIN
