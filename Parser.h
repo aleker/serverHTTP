@@ -31,6 +31,7 @@ private:
     std::string serverProtocol;
 
     string messageCopy;
+    string content;
 
 
 

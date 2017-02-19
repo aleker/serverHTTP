@@ -41,14 +41,17 @@ void Parser::prepareAdditionalParamaters() {
             values.push_back(line.substr(index + 2, line.size() - index - 2));
         } else if (line.size() > 1) {
             index = findSubstring("/", line);
-            bool queryStart = false;
-            while (line[index] != ' ') {
-                if(line[index] == '?') queryStart = true;
-                if(queryStart) query.push_back(line[index]);
-                uri.push_back(line[index]);
-                index++;
+            if(index != -1) {
+                bool queryStart = false;
+                while (line[index] != ' ') {
+                    if(line[index] == '?') queryStart = true;
+                    if(queryStart) query.push_back(line[index]);
+                    uri.push_back(line[index]);
+                    index++;
+                }
+                serverProtocol = line.substr(index+1, line.size()-index-1);
             }
-            serverProtocol = line.substr(index+1, line.size()-index-1);
+            else content = line;
         }
     }
 }
@@ -160,12 +163,18 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
     // FCGI_STDIN
     // TODO stdin_data przypisać wartość!
     unsigned char stdin_data[] = {};
-    int stdin_size = sizeof(stdin_data);
+    if(content.length() > 0)
+        strcpy((char *) stdin_data, content.c_str());
+
+    int stdin_size = (int) content.length();
+    unsigned char stdin_data2[content.length()];
+    strcpy((char *) stdin_data2, content.c_str());
     padding_size = (8 - stdin_size%8)%8;
+    cout << "PADDING SIZE " << padding_size << endl;
     record_size = HEADER_SIZE + stdin_size + padding_size + HEADER_SIZE;
     if (stdin_size == 0) record_size -= HEADER_SIZE;
     StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
-    stdinRecord.fill(stdin_size, stdin_data);
+    stdinRecord.fill(stdin_size, stdin_data2);
 
     records->push_back(beginRecord);
     records->push_back(paramRecord);
