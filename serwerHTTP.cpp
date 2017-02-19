@@ -6,7 +6,6 @@
 #include <error.h>
 #include <unordered_set>
 
-
 using namespace std;
 
 // client sockets
@@ -36,7 +35,7 @@ int main(int argc, char** argv) {
 
             // FCGI CONNECTION:
             // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
-            FCGIManager fcgiConnection("127.0.0.1", 8000);
+            FCGIManager fcgiConnection("0.0.0.0", 8000);
             fcgiConnection.createConnection();
 
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:

@@ -12,9 +12,11 @@ add_executable(serwerHTTP
         ConnectionManager.cpp
         Parser.cpp
         HTTPManager.cpp
-        FCGIManager.cpp)
+        FCGIManager.cpp
+)
 
 add_executable(fcgi fcgi.cpp)
+
 
 # adding flags only for fcgi:
 # set_source_files_properties(fcgi.cpp PROPERTIES COMPILE_FLAGS -lfcgi++ -lfcgi)
