@@ -55,7 +55,7 @@ void Parser::prepareAdditionalParamaters(string* message) {
             }
             else {
                 on_parameters = false;
-                stdinContent = line;
+                stdinContent.append(line);
             }
         }
     }

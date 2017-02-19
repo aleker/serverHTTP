@@ -79,11 +79,11 @@ int main(void) {
         // get the request URI
         const char * uri = FCGX_GetParam("REQUEST_URI", request.envp);
 
-        string content = get_request_content(request);
+//        string content = get_request_content(request);
 
-        if (content.length() == 0) {
-            content = ", World!";
-        }
+//        if (content.length() == 0) {
+//            content = ", World!";
+//        }
 
         cout << "Content-type: text/html\r\n"
              << "\r\n"
@@ -92,7 +92,7 @@ int main(void) {
              << "    <title>Hello, World!</title>\n"
              << "  </head>\n"
              << "  <body>\n"
-             << "    <h1>Hello " << content << " from " << uri << " !</h1>\n"
+             << "    <h1>Hello " /*<< content*/<< uri << " from " << uri << " !</h1>\n"
              << "  </body>\n"
              << "</html>\n";
 

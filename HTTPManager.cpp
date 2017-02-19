@@ -99,6 +99,7 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     unsigned char* buffer = new unsigned char[100];
     //ssize_t Len = read(client->descriptor, content_data, bufsize);
     //cout << content_data;
+    // TODO timeout do configa
     ssize_t Len;
     while ((Len = recv_to(client->descriptor, buffer, 100, 0, 5000)) > 0) {
         for (int i = 0; i < Len; i++) {
