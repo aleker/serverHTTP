@@ -5,7 +5,7 @@
 #include <string>
 #include <fcgi_stdio.h>
 #include "fcgio.h"
-
+#include <fstream>
 
 using namespace std;
 
@@ -66,7 +66,8 @@ int main(void) {
     FCGX_InitRequest(&request, sock, 0);
 
     while (FCGX_Accept_r(&request) >= 0) {
-        cout << "request.out = " << request.out << endl;
+
+        string file_format = FCGX_GetParam("FILE_FORMAT", request.envp);
 
         fcgi_streambuf cin_fcgi_streambuf(request.in);
         fcgi_streambuf cout_fcgi_streambuf(request.out);
@@ -81,22 +82,39 @@ int main(void) {
 
         string content = get_request_content(request);
 
+
         if (content.length() == 0) {
             content = ", World!";
         }
 
-        cout << "Content-type: text/html\r\n"
-             << "\r\n"
-             << "<html>\n"
-             << "  <head>\n"
-             << "    <title>Hello, World!</title>\n"
-             << "  </head>\n"
-             << "  <body>\n"
-             << "    <h1>Hello " << content << " from " << uri << " !</h1>\n"
-             << "  </body>\n"
-             << "</html>\n";
-
-        // Note: the fcgi_streambuf destructor will auto flush
+        if(file_format == "txt") {
+//        SAVING FILE
+            ofstream myfile;
+            myfile.open ("example.txt");
+            myfile << content << "\n";
+            myfile.close();
+            cout << "Content-type: text/html\r\n"
+                 << "\r\n"
+                 << "<html>\n"
+                 << "  <head>\n"
+                 << "    <title>POST request!</title>\n"
+                 << "  </head>\n"
+                 << "  <body>\n"
+                 << "    <h1>FILE SAVED.</h1>\n"
+                 << "  </body>\n"
+                 << "</html>\n";
+        } else {
+            cout << "Content-type: text/html\r\n"
+                 << "\r\n"
+                 << "<html>\n"
+                 << "  <head>\n"
+                 << "    <title>Hello, World!</title>\n"
+                 << "  </head>\n"
+                 << "  <body>\n"
+                 << "    <h1>Hello " << file_format << " from " << uri << " !</h1>\n"
+                 << "  </body>\n"
+                 << "</html>\n";
+        }
     }
 
     // restore stdio streambufs
