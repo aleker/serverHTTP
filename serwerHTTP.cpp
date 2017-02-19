@@ -51,9 +51,8 @@ int main(int argc, char** argv) {
         }
     });
 
-t_clients.join();
-
-//    close(serverMainConnection.descriptor);
+    t_clients.join();
+    close(serverMainConnection.descriptor);
 }
 
 // https://fossies.org/linux/FCGI/fcgiapp.c#l_2190

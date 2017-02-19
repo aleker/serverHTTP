@@ -28,6 +28,9 @@ void Parser::prepareAdditionalParamaters(string* message) {
     std::string line;
     bool request_method_founded = false;
     bool on_parameters = true;
+    parameters.push_back("FILE_FORMAT");
+    values.push_back("txt");
+
     while (std::getline(f, line)) {
         int index = findSubstring(":", line);
         if (on_parameters and index != -1) {
@@ -76,6 +79,7 @@ int Parser::prepareStandardParameters() {
             return 0;
         }
     }
+
     return 0;
 }
 
