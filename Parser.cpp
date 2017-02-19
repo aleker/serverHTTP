@@ -45,7 +45,8 @@ void Parser::prepareParamaters() {
         int index = findSubstring(":", line);
         if (index != -1) {
             std::string parameter = line.substr(0, index);
-            for (int i = 0; i < parameter.length(); i++) {
+//            TODO Check if this makes any sense at all?
+            for (int i = 0; i < (signed)parameter.length(); i++) {
                 if (parameter[i] == '-') parameter.replace(i, 1, "_");
             }
             std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::toupper);

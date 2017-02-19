@@ -6,8 +6,8 @@
 #define SERWERHTTP_CONSTANTS_H
 #include <iostream>
 
-static size_t bufsize = 1000;
-static unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
+static const size_t bufsize = 1000;
+static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
 
 #define FCGI_BEGIN_REQUEST       1
 #define FCGI_ABORT_REQUEST       2
