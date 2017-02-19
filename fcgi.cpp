@@ -51,6 +51,27 @@ string get_request_content(const FCGX_Request & request) {
     delete [] content_buffer;
     return content;
 }
+//form-data; name="heh"; filename="adelle.txt"
+
+string getFilename(string contentDisposition) {
+    int index = (int) contentDisposition.find("filename");
+    string filename;
+    if (index != -1) {
+        index += 10;
+        try {
+            while (contentDisposition[index] != '\"') {
+                filename.push_back(contentDisposition[index]);
+                index++;
+            }
+        }
+        catch (exception &e) {
+            perror("Error reading filename.");
+            return "";
+        }
+    }
+    return filename;
+}
+
 
 int main(void) {
     // Backup the stdio streambufs
@@ -67,7 +88,8 @@ int main(void) {
 
     while (FCGX_Accept_r(&request) >= 0) {
 
-        string file_format = FCGX_GetParam("FILE_FORMAT", request.envp);
+        string contentDisposition = FCGX_GetParam("HTTP_CONTENT_DISPOSITION", request.envp);
+        string filename = getFilename(contentDisposition);
 
         fcgi_streambuf cin_fcgi_streambuf(request.in);
         fcgi_streambuf cout_fcgi_streambuf(request.out);
@@ -87,10 +109,10 @@ int main(void) {
             content = ", World!";
         }
 
-        if(file_format == "txt") {
+        if(filename.substr(filename.length()-4, 4) == ".txt") {
 //        SAVING FILE
             ofstream myfile;
-            myfile.open ("example.txt");
+            myfile.open(filename.c_str());
             myfile << content << "\n";
             myfile.close();
             cout << "Content-type: text/html\r\n"
@@ -111,7 +133,7 @@ int main(void) {
                  << "    <title>Hello, World!</title>\n"
                  << "  </head>\n"
                  << "  <body>\n"
-                 << "    <h1>Hello " << file_format << " from " << uri << " !</h1>\n"
+                 << "    <h1>Hello " << uri << " from " << uri << " !</h1>\n"
                  << "  </body>\n"
                  << "</html>\n";
         }

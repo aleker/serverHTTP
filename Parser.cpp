@@ -27,15 +27,12 @@ void Parser::prepareAdditionalParamaters(string* message) {
     std::istringstream f(*message);
     std::string line;
     bool request_method_founded = false;
-    bool on_parameters = true;
-    parameters.push_back("FILE_FORMAT");
-    values.push_back("txt");
 
     while (std::getline(f, line)) {
-        int index = findSubstring(":", line);
-        if (on_parameters and index != -1) {
+        int index = findSubstring(": ", line);
+        // READ PARAMETERS
+        if (index != -1) {
             std::string parameter = line.substr(0, index);
-//            TODO Check if this makes any sense at all?
             for (int i = 0; i < (signed)parameter.length(); i++) {
                 if (parameter[i] == '-') parameter.replace(i, 1, "_");
             }
@@ -45,6 +42,7 @@ void Parser::prepareAdditionalParamaters(string* message) {
             values.push_back(line.substr(index + 2, line.size() - index - 2));
         } else if (line.size() > 1) {
             index = findSubstring("/", line);
+            // READ GET/POST ONLY ONCE
             if(!request_method_founded and index != -1) {
                 request_method_founded = true;
                 bool queryStart = false;
@@ -56,8 +54,8 @@ void Parser::prepareAdditionalParamaters(string* message) {
                 }
                 serverProtocol = line.substr(index+1, line.size()-index-1);
             }
+                // READ CONTENT
             else {
-                on_parameters = false;
                 stdinContent.append(line);
             }
         }
