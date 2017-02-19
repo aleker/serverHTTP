@@ -23,13 +23,14 @@ int Parser::findSubstring(string substring, string mainString){
     return -1;
 }
 
-void Parser::prepareAdditionalParamaters() {
-    std::istringstream f(messageCopy);
+void Parser::prepareAdditionalParamaters(string* message) {
+    std::istringstream f(*message);
     std::string line;
-
+    bool request_method_founded = false;
+    bool on_parameters = true;
     while (std::getline(f, line)) {
         int index = findSubstring(":", line);
-        if (index != -1) {
+        if (on_parameters and index != -1) {
             std::string parameter = line.substr(0, index);
 //            TODO Check if this makes any sense at all?
             for (int i = 0; i < (signed)parameter.length(); i++) {
@@ -41,7 +42,8 @@ void Parser::prepareAdditionalParamaters() {
             values.push_back(line.substr(index + 2, line.size() - index - 2));
         } else if (line.size() > 1) {
             index = findSubstring("/", line);
-            if(index != -1) {
+            if(!request_method_founded and index != -1) {
+                request_method_founded = true;
                 bool queryStart = false;
                 while (line[index] != ' ') {
                     if(line[index] == '?') queryStart = true;
@@ -51,7 +53,10 @@ void Parser::prepareAdditionalParamaters() {
                 }
                 serverProtocol = line.substr(index+1, line.size()-index-1);
             }
-            else stdinContent = line;
+            else {
+                on_parameters = false;
+                stdinContent = line;
+            }
         }
     }
 }
@@ -74,21 +79,16 @@ int Parser::prepareStandardParameters() {
     return 0;
 }
 
-int Parser::parseBrowserMessage(unsigned char* message){
-    int i = 0;
-    while(message[i]!='\0') {
-        messageCopy.push_back(message[i]);
-        i++;
-    }
-    if(findSubstring("favicon", messageCopy) != -1)
+int Parser::parseBrowserMessage(string* message){
+    if(findSubstring("favicon", *message) != -1)
         return -1;
-    else if (findSubstring("GET ", messageCopy) != -1){
+    else if (findSubstring("GET ", *message) != -1){
         requestMethod = "GET";
     }
-    else if (findSubstring("POST ", messageCopy) != -1){
+    else if (findSubstring("POST ", *message) != -1){
         requestMethod = "POST";
     }
-    prepareAdditionalParamaters();
+    prepareAdditionalParamaters(message);
     prepareStandardParameters();
     return 0;
 }
