@@ -59,7 +59,7 @@ int Parser::prepareStandardParameters() {
     CGI_values.push_back(requestMethod);
     CGI_values.push_back(uri);
     CGI_values.push_back(query);
-    for (int i = 0; i < parameters.size(); i++) {
+    for (int i = 0; i < (signed)parameters.size(); i++) {
         if (parameters[i] == "HTTP_CONTENT_LENGTH") {
             CGI_values.push_back(values[i]);
         }
@@ -92,7 +92,7 @@ int Parser::parseBrowserMessage(unsigned char* message){
 
 int Parser::mergeIntoOneMessage(string* content_data) {
     // STANDARD PARAMETERS
-    for (int i = 0; i < CGI_values.size(); i++) {
+    for (int i = 0; i < (signed)CGI_values.size(); i++) {
         try {
             if (CGI_values[i][CGI_values[i].length() - 1] == '\r')
                 CGI_values[i].erase(CGI_values[i].begin() + CGI_values[i].length() - 1);
@@ -114,7 +114,7 @@ int Parser::mergeIntoOneMessage(string* content_data) {
     }
 
     // ADDITIONAL PARAMETERS
-    for (int i = 0; i < parameters.size(); i++) {
+    for (int i = 0; i < (signed)parameters.size(); i++) {
         if (parameters[i][parameters[i].length() - 1] == '\r')
             parameters[i].erase(parameters[i].begin() + parameters[i].length() - 1);
         if (values[i][values[i].length() - 1] == '\r')
@@ -131,10 +131,11 @@ int Parser::mergeIntoOneMessage(string* content_data) {
     return 0;
 }
 
-unsigned char* fromStringToUnsignedCharArray(string original_data, unsigned char* output) {
-    for (int i = 0; i < original_data.length(); i++) {
+void fromStringToUnsignedCharArray(string original_data, unsigned char* output) {
+    for (int i = 0; i < (signed)original_data.length(); i++) {
         output[i] = (unsigned char) original_data[i];
     }
+    return;
     //output[original_data.length()] = 0;     // proper end of string
 }
 
