@@ -51,7 +51,7 @@ void Parser::prepareAdditionalParamaters() {
                 }
                 serverProtocol = line.substr(index+1, line.size()-index-1);
             }
-            else content = line;
+            else stdinContent = line;
         }
     }
 }
@@ -139,7 +139,6 @@ void fromStringToUnsignedCharArray(string original_data, unsigned char* output) 
         output[i] = (unsigned char) original_data[i];
     }
     return;
-    //output[original_data.length()] = 0;     // proper end of string
 }
 
 void Parser::createRecords(vector<Record>* records, int request_id, int role) {
@@ -153,6 +152,7 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
     // FCGI_PARAM
     int params_size = (int) contentData.length();
     unsigned char params_data[params_size];
+//    TODO check why strcpy doesn't work
     fromStringToUnsignedCharArray(contentData, &params_data[0]);
     int padding_size = (8 - params_size%8)%8;
     int record_size = HEADER_SIZE + params_size + padding_size + HEADER_SIZE;
@@ -162,13 +162,10 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
 
     // FCGI_STDIN
     // TODO stdin_data przypisać wartość!
-
-
-    int stdin_size = (int) content.length();
-    unsigned char stdin_data[content.length()];
-    strcpy((char *) stdin_data, content.c_str());
+    int stdin_size = (int) stdinContent.length();
+    unsigned char stdin_data[stdin_size];
+    strcpy((char *) stdin_data, stdinContent.c_str());
     padding_size = (8 - stdin_size%8)%8;
-
     record_size = HEADER_SIZE + stdin_size + padding_size + HEADER_SIZE;
     if (stdin_size == 0) record_size -= HEADER_SIZE;
     StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
