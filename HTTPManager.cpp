@@ -101,7 +101,7 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     //cout << content_data;
     // TODO timeout do configa
     ssize_t Len;
-    while ((Len = recv_to(client->descriptor, buffer, 100, 0, 5000)) > 0) {
+    while ((Len = recv_to(client->descriptor, buffer, 100, 0, 2000)) > 0) {
         for (int i = 0; i < Len; i++) {
             content_data->push_back(buffer[i]);
         }
