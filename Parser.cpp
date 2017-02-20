@@ -12,9 +12,6 @@
 #include <string>
 #include <sstream>
 
-// TODO usunąć messageCopy z klasy
-// TODO stworzyć gotowe rekordy do wysłania
-
 int Parser::findSubstring(string substring, string mainString){
     std::size_t found = mainString.find(substring);
     if (found!=std::string::npos){
@@ -163,7 +160,6 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
     paramRecord.fill(params_size, params_data);
 
     // FCGI_STDIN
-    // TODO stdin_data przypisać wartość!
     int stdin_size = (int) stdinContent.length();
     unsigned char stdin_data[stdin_size];
     strcpy((char *) stdin_data, stdinContent.c_str());

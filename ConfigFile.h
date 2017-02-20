@@ -11,16 +11,25 @@
 using namespace std;
 
 class ConfigFile {
-public:
-    ConfigFile(const char *file_name);
-    ~ConfigFile();
-
-    int readFCGI(const char *ip, int port);
-
 private:
     config_t *cf;
-    const char* file_name;
+    const char* file_name = "config.cfg";
 
+    ConfigFile();
+    ConfigFile(const ConfigFile &);
+
+public:
+    static ConfigFile & getConfigFile() {
+        static ConfigFile config;
+        return config;
+    }
+    ~ConfigFile();
+
+    int readFCGI(const char *ip, int* port);
+
+    int readTimeout(int *timeout);
+
+    int readRole(int *role);
 };
 
 

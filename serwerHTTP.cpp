@@ -5,6 +5,7 @@
 #include <thread>
 #include <error.h>
 #include <unordered_set>
+#include "ConfigFile.h"
 
 using namespace std;
 
@@ -35,8 +36,11 @@ int main(int argc, char** argv) {
             serverMainConnection.getMessage(&clientConnection, &message);
 
             // FCGI CONNECTION:
-            // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
-            FCGIManager fcgiConnection("0.0.0.0", 8000);
+            // TODO parametry 0.0.0.0 w pliku konfiguracyjnym!!!!
+            int port = 0;
+            char ip[10];
+            if (ConfigFile::getConfigFile().readFCGI(ip, &port) == -1) break;
+            FCGIManager fcgiConnection("0.0.0.0", port);
             fcgiConnection.createConnection();
 
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:

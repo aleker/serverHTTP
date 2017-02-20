@@ -10,6 +10,7 @@
 #include "constants.h"
 #include "Record.h"
 #include "Parser.h"
+#include "ConfigFile.h"
 #include <sys/select.h>
 #include <fcntl.h>
 
@@ -99,9 +100,10 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     unsigned char* buffer = new unsigned char[100];
     //ssize_t Len = read(client->descriptor, content_data, bufsize);
     //cout << content_data;
-    // TODO timeout do configa
     ssize_t Len;
-    while ((Len = recv_to(client->descriptor, buffer, 100, 0, 5000)) > 0) {
+    int timeout;
+    if (ConfigFile::getConfigFile().readTimeout(&timeout) == -1) return -1;
+    while ((Len = recv_to(client->descriptor, buffer, 100, 0, timeout)) > 0) {
         for (int i = 0; i < Len; i++) {
             content_data->push_back(buffer[i]);
         }
@@ -120,7 +122,9 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message) cons
 
     // CREATE RECORDS
     int request_id = 1;                                           // TODO RANDOM ID
-    parser.createRecords(&records, request_id, FCGI_RESPONDER);     // TODO rola
+    int role;
+    if (ConfigFile::getConfigFile().readRole(&role) == -1) return;
+    parser.createRecords(&records, request_id, role);     // TODO rola
 
     // SENDING RECORDS
     cout << "***MESSAGE FROM HTTP TO FCGI\n";
