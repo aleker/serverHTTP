@@ -8,6 +8,11 @@
 #include <vector>
 #include <string>
 
+struct clientStruct {
+    int descriptor;
+    std::string message;
+};
+
 static const size_t bufsize = 1000;
 static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
 

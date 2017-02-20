@@ -12,8 +12,11 @@ class FCGIManager : public ConnectionManager {
 public:
     FCGIManager(const char *host, int port);
 
+
     int createConnection();
     virtual void sendMessage(int clientSocketFd);
+
+    virtual ~FCGIManager();
 
 private:
     int connectSocket();

@@ -119,7 +119,7 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message) cons
     parser.parseBrowserMessage(message);
 
     // CREATE RECORDS
-    int request_id = 1;                                           // TODO RANDOM ID
+    int request_id = receiver->descriptor;                                           // TODO RANDOM ID
     parser.createRecords(&records, request_id, FCGI_RESPONDER);     // TODO rola
 
     // SENDING RECORDS
