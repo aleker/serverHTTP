@@ -5,7 +5,8 @@
 #include <string>
 #include <fcgi_stdio.h>
 #include "fcgio.h"
-
+#include <fstream>
+#include <string.h>
 
 using namespace std;
 
@@ -16,8 +17,8 @@ const unsigned long STDIN_MAX = 1000000;
  * Note this is not thread safe due to the static allocation of the
  * content_buffer.
  */
-string get_request_content(const FCGX_Request & request) {
-    char * content_length_str = FCGX_GetParam("CONTENT_LENGTH", request.envp);
+string get_request_content(const FCGX_Request &request) {
+    char *content_length_str = FCGX_GetParam("CONTENT_LENGTH", request.envp);
     unsigned long content_length = STDIN_MAX;
 
     if (content_length_str) {
@@ -36,7 +37,7 @@ string get_request_content(const FCGX_Request & request) {
         content_length = 0;
     }
 
-    char * content_buffer = new char[content_length];
+    char *content_buffer = new char[content_length];
     cin.read(content_buffer, content_length);
     content_length = cin.gcount();
 
@@ -48,16 +49,42 @@ string get_request_content(const FCGX_Request & request) {
     do cin.ignore(1024); while (cin.gcount() == 1024);
 
     string content(content_buffer, content_length);
-    delete [] content_buffer;
+    delete[] content_buffer;
     return content;
 }
+//form-data; name="heh"; filename="adelle.txt"
+
+string getFilename(const FCGX_Request &request) {
+    const char *contentDisposition = FCGX_GetParam("HTTP_CONTENT_DISPOSITION", request.envp);
+    if (contentDisposition) {
+        string content(contentDisposition);
+        int index = (int) content.find("filename=");
+        string filename;
+        if (index != -1) {
+            index += 10;
+            try {
+                while (contentDisposition[index] != '\"') {
+                    filename.push_back(contentDisposition[index]);
+                    index++;
+                }
+            }
+            catch (exception &e) {
+                perror("Error reading filename.");
+                return "";
+            }
+            return filename;
+        }
+    }
+    return "";
+}
+
 
 int main(void) {
     // Backup the stdio streambufs
 
-    streambuf * cin_streambuf  = cin.rdbuf();
-    streambuf * cout_streambuf = cout.rdbuf();
-    streambuf * cerr_streambuf = cerr.rdbuf();
+    streambuf *cin_streambuf = cin.rdbuf();
+    streambuf *cout_streambuf = cout.rdbuf();
+    streambuf *cerr_streambuf = cerr.rdbuf();
 
     FCGX_Request request;
 
@@ -66,7 +93,6 @@ int main(void) {
     FCGX_InitRequest(&request, sock, 0);
 
     while (FCGX_Accept_r(&request) >= 0) {
-        cout << "request.out = " << request.out << endl;
 
         fcgi_streambuf cin_fcgi_streambuf(request.in);
         fcgi_streambuf cout_fcgi_streambuf(request.out);
@@ -77,29 +103,58 @@ int main(void) {
         cerr.rdbuf(&cerr_fcgi_streambuf);
 
         // get the request URI
-        const char * uri = FCGX_GetParam("REQUEST_URI", request.envp);
+        const char *uri = FCGX_GetParam("REQUEST_URI", request.envp);
 
         string content = get_request_content(request);
-
         if (content.length() == 0) {
             content = ", World!";
         }
 
-        cout << "Content-type: text/html\r\n"
-             << "\r\n"
-             << "<html>\n"
-             << "  <head>\n"
-             << "    <title>Hello, World!</title>\n"
-             << "  </head>\n"
-             << "  <body>\n"
-             << "    <h1>Hello " << content << " from " << uri << " !</h1>\n"
-             << "  </body>\n"
-             << "</html>\n";
+        string filename = getFilename(request);
+        if (filename.length() > 0) {
+            if (filename.substr(filename.length() - 4, 4) == ".txt") {
+                ofstream myfile;
+                myfile.open(filename.c_str());
+                myfile << content << "\n";
+                myfile.close();
+                cout << "Content-type: text/html\r\n"
+                     << "\r\n"
+                     << "<html>\n"
+                     << "  <head>\n"
+                     << "    <title>POST request!</title>\n"
+                     << "  </head>\n"
+                     << "  <body>\n"
+                     << "    <h1>FILE SAVED./h1>\n"
+                     << "  </body>\n"
+                     << "</html>\n";
+            } else {
+                cout << "Content-type: text/html\r\n"
+                     << "\r\n"
+                     << "<html>\n"
+                     << "  <head>\n"
+                     << "    <title>POST request!</title>\n"
+                     << "  </head>\n"
+                     << "  <body>\n"
+                     << "    <h1>Wrong file extension./h1>\n"
+                     << "  </body>\n"
+                     << "</html>\n";
+            }
+        } else {
+            cout << "Content-type: text/html\r\n"
+                 << "\r\n"
+                 << "<html>\n"
+                 << "  <head>\n"
+                 << "    <title>Hello, World!</title>\n"
+                 << "  </head>\n"
+                 << "  <body>\n"
+                 << "    <h1>Hello " << " from " << uri << " !</h1>\n"
+                 << "  </body>\n"
+                 << "</html>\n";
+        }
 
-        // Note: the fcgi_streambuf destructor will auto flush
     }
 
-    // restore stdio streambufs
+// restore stdio streambufs
     cin.rdbuf(cin_streambuf);
     cout.rdbuf(cout_streambuf);
     cerr.rdbuf(cerr_streambuf);
@@ -108,4 +163,3 @@ int main(void) {
 
 }
 
-// g++ fcgi.cpp -lfcgi++ -lfcgi -o bin/fcgi

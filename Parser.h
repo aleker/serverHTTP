@@ -17,7 +17,7 @@ class Parser {
 public:
     Parser(){}
 
-    int parseBrowserMessage(unsigned char* message);
+    int parseBrowserMessage(string* message);
     void createRecords(vector<Record> *records, int request_id, int role);
     string requestMethod;
 
@@ -30,12 +30,12 @@ private:
     std::string uri;
     std::string serverProtocol;
 
-    string messageCopy;
+    //string messageCopy;
     string stdinContent;
 
 
 
-    void prepareAdditionalParamaters();
+    void prepareAdditionalParamaters(std::string* message);
 
     int findSubstring(string substring, string mainString);
 

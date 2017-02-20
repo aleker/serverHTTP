@@ -30,8 +30,9 @@ int main(int argc, char** argv) {
             ConnectionManager clientConnection = ConnectionManager();
             serverMainConnection.acceptConnection(&clientConnection);
             clientFds.insert(clientConnection.descriptor);
-            unsigned char message[bufsize];
-            serverMainConnection.getMessage(&clientConnection, message);
+            //unsigned char message[bufsize];
+            string message;
+            serverMainConnection.getMessage(&clientConnection, &message);
 
             // FCGI CONNECTION:
             // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
@@ -39,7 +40,7 @@ int main(int argc, char** argv) {
             fcgiConnection.createConnection();
 
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
-            serverMainConnection.sendMessage(&fcgiConnection, message);
+            serverMainConnection.sendMessage(&fcgiConnection, &message);
 
             // SENDING MESSAGE FROM FCGI TO CLIENT
             fcgiConnection.sendMessage(clientConnection.descriptor);
@@ -49,9 +50,8 @@ int main(int argc, char** argv) {
         }
     });
 
-t_clients.join();
-
-//    close(serverMainConnection.descriptor);
+    t_clients.join();
+    close(serverMainConnection.descriptor);
 }
 
 // https://fossies.org/linux/FCGI/fcgiapp.c#l_2190
