@@ -122,7 +122,7 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message) cons
     parser.parseBrowserMessage(message);
 
     // CREATE RECORDS
-    int request_id = =receiver->descriptor;                                           // TODO RANDOM ID
+    int request_id = receiver->descriptor;                                           // TODO RANDOM ID
     int role;
     if (ConfigFile::getConfigFile().readRole(&role) == -1) return;
     parser.createRecords(&records, request_id, role);     // TODO rola
