@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
             serverMainConnection.sendMessage(fcgiConnection, &clients[random_index].message, clients[random_index].descriptor);
             // SENDING MESSAGE FROM FCGI TO CLIENT
             fcgiConnection->sendMessage(clients[random_index].descriptor);
-            //close(clients[random_index].descriptor);
+            close(clients[random_index].descriptor);
             clients.erase(clients.begin() + random_index);
             delete fcgiConnection;
         }
