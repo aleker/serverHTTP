@@ -16,7 +16,7 @@ public:
     int prepareServerSocket();
     int acceptConnection(ConnectionManager *client) const;
     int getMessage(ConnectionManager *client, std::string* content_data) const;
-    void sendMessage(ConnectionManager *receiver, std::string *message) const;
+    void sendMessage(ConnectionManager *receiver, std::string *message, int id) const;
 
 private:
     int bindSocket();

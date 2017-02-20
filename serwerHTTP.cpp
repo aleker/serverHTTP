@@ -27,22 +27,19 @@ int main(int argc, char** argv) {
 
     // MAIN SERVER CONNECTION
     HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
-    serverMainConnection.prepareServerSocket();      // prepare server socket
+    serverMainConnection.prepareServerSocket();
     // FCGI CONNECTION:
-    // TODO parametry 127.0.0.1 8000 w pliku konfiguracyjnym
     int port = 0;
     string ip = "";
     if (ConfigFile::getConfigFile().readFCGI(&ip, &port) == -1) return 0;
-    FCGIManager* fcgiConnection = new FCGIManager(ip.c_str(), port);
-    fcgiConnection->createConnection();
 
     int res = listen(serverMainConnection.descriptor, 1);
     if (res) error(1, errno, "listen failed!");
 
-
+    bool exit_server = false;
 //    THREAD THAT ACCEPTS CLIENT CONNECTIONS
     std::thread t_clients([=] {
-        while(1) {
+        while(!exit_server) {
             // CLIENT CONNECTION:
             ConnectionManager clientConnection = ConnectionManager();
             serverMainConnection.acceptConnection(&clientConnection);
@@ -53,24 +50,31 @@ int main(int argc, char** argv) {
         }
     });
     std::thread t_fcgi([=] {
-        while(1) {
+        while(!exit_server) {
             int random_index;
             if ((random_index = random_int((int) (clients.size() - 1))) < 0 ) continue;
             cout << " client " << clients[random_index].descriptor << endl;
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
-            serverMainConnection.sendMessage(fcgiConnection, &clients[random_index].message);
+            FCGIManager* fcgiConnection = new FCGIManager(ip.c_str(), port);
+            fcgiConnection->createConnection();
+            serverMainConnection.sendMessage(fcgiConnection, &clients[random_index].message, clients[random_index].descriptor);
             // SENDING MESSAGE FROM FCGI TO CLIENT
             fcgiConnection->sendMessage(clients[random_index].descriptor);
-            close(clients[random_index].descriptor);
+            //close(clients[random_index].descriptor);
             clients.erase(clients.begin() + random_index);
+            delete fcgiConnection;
         }
+
     });
 
+    getchar();
+    exit_server = true;
+    cout << "\nBĘDĘ ZAMYKAŁ!!!!!! UWAGAAAAAAAAAAAA!!!!!!\n";
     t_clients.join();
     t_fcgi.join();
-    close(fcgiConnection->descriptor);
-    delete fcgiConnection;
+    cout << "\nWĄTKI TEŻ POSZŁY!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
     close(serverMainConnection.descriptor);
+    return 0;
 }
 
 // TODO usunąć komentarze

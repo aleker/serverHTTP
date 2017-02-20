@@ -35,10 +35,10 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     write(1, &answerHeader, sizeof(answerHeader));
     write(clientSocketFd, &answerHeader, sizeof(answerHeader));
     while ((readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0)) != 0) {
-        write(1, &message_buf, (size_t)readBytes);
         write(clientSocketFd, &message_buf, (size_t)readBytes);
+        write(1, &message_buf, (size_t)readBytes);
     }
-    std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT\n";
+    std::cout << "\n***END OF MESSAGE FROM FCGI TO CLIENT\n";
 }
 
 FCGIManager::~FCGIManager() {}

@@ -114,7 +114,7 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     return 0;
 }
 
-void HTTPManager::sendMessage(ConnectionManager* receiver, string* message) const {
+void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int id) const {
     // TODO upper boundary for message size
     std::vector<Record> records;
     Parser parser;
@@ -122,7 +122,7 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message) cons
     parser.parseBrowserMessage(message);
 
     // CREATE RECORDS
-    int request_id = receiver->descriptor;                                           // TODO RANDOM ID
+    int request_id = id;                                           // TODO RANDOM ID
     int role;
     if (ConfigFile::getConfigFile().readRole(&role) == -1) return;
     parser.createRecords(&records, request_id, role);     // TODO rola
