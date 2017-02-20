@@ -36,11 +36,10 @@ int main(int argc, char** argv) {
             serverMainConnection.getMessage(&clientConnection, &message);
 
             // FCGI CONNECTION:
-            // TODO parametry 0.0.0.0 w pliku konfiguracyjnym!!!!
             int port = 0;
-            char ip[10];
-            if (ConfigFile::getConfigFile().readFCGI(ip, &port) == -1) break;
-            FCGIManager fcgiConnection("0.0.0.0", port);
+            string ip = "";
+            if (ConfigFile::getConfigFile().readFCGI(&ip, &port) == -1) break;
+            FCGIManager fcgiConnection(ip.c_str(), port);
             fcgiConnection.createConnection();
 
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
@@ -58,5 +57,6 @@ int main(int argc, char** argv) {
     close(serverMainConnection.descriptor);
 }
 
+// TODO usunąć komentarze
 // https://fossies.org/linux/FCGI/fcgiapp.c#l_2190
 // http://web.archive.org/web/20160306081510/http://fastcgi.com/drupal/node/6?q=node/22#SB

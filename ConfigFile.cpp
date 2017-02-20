@@ -4,6 +4,7 @@
 
 #include "ConfigFile.h"
 #include <unistd.h>
+#include <iostream>
 
 ConfigFile::ConfigFile() {
 //    char cwd[1024];
@@ -29,12 +30,14 @@ ConfigFile::~ConfigFile() {
     config_destroy(cf);
 }
 
-int ConfigFile::readFCGI(const char *ip, int* port) {
-
-    if (config_lookup_string(cf, "FCGI.ip", &ip) != 1) {
+int ConfigFile::readFCGI(string* ip, int* port) {
+    const char *local_ip;
+    if (config_lookup_string(cf, "FCGI.ip", &local_ip) != 1) {
         perror("Error reading ip from config file");
         return -1;
     };
+    string s(local_ip);
+    *ip = s;
     if (config_lookup_int(cf, "FCGI.port", port) != 1) {
         perror("Error reading port from config file");
         return -1;

@@ -25,7 +25,7 @@ public:
     }
     ~ConfigFile();
 
-    int readFCGI(const char *ip, int* port);
+    int readFCGI(string* ip, int* port);
 
     int readTimeout(int *timeout);
 
