@@ -148,4 +148,3 @@ int main(void) {
 
 }
 
-// g++ fcgi.cpp -lfcgi++ -lfcgi -o bin/fcgi

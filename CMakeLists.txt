@@ -4,7 +4,7 @@ project(serwerHTTP)
 # output directory:
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
-# flags for serwerHTTP
+# 1
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -DCMAKE_INSTALL_INCLUDEDIR=include/jsoncpp -pthread")
 
 add_executable(serwerHTTP
@@ -17,7 +17,7 @@ add_executable(serwerHTTP
         HTTPManager.cpp
         FCGIManager.cpp)
 
-# flags for fcgi
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lfcgi++ -lfcgi -DCMAKE_INSTALL_INCLUDEDIR=include/jsoncpp -pthread")
+# 2
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lfcgi++ -lfcgi -Wall -DCMAKE_INSTALL_INCLUDEDIR=include/jsoncpp -pthread")
 
 add_executable(fcgi fcgi.cpp)
