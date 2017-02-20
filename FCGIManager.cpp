@@ -40,3 +40,5 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     }
     std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT\n";
 }
+
+FCGIManager::~FCGIManager() {}
