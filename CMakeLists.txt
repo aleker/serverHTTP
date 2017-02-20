@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.6)
 project(serwerHTTP)
 
+# output directory:
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+
+# flags for serwerHTTP
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -DCMAKE_INSTALL_INCLUDEDIR=include/jsoncpp -pthread")
 
 add_executable(serwerHTTP
@@ -14,7 +17,7 @@ add_executable(serwerHTTP
         HTTPManager.cpp
         FCGIManager.cpp)
 
-add_executable(fcgi fcgi.cpp)
+# flags for fcgi
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lfcgi++ -lfcgi -DCMAKE_INSTALL_INCLUDEDIR=include/jsoncpp -pthread")
 
-# adding flags only for fcgi:
-# set_source_files_properties(fcgi.cpp PROPERTIES COMPILE_FLAGS -lfcgi++ -lfcgi)
+add_executable(fcgi fcgi.cpp)
