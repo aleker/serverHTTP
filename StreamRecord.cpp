@@ -6,7 +6,7 @@
 
 StreamRecord::StreamRecord(int array_size, int type, int request_id) : Record(array_size, type, request_id) {}
 
-void StreamRecord::fillContentData(int shift, unsigned char* content_data, int contentLength) {
+void StreamRecord::fillContentData(int shift, unsigned char *content_data, int contentLength) {
     int paddingLength = (8 - contentLength % 8) % 8;
     for (int i = 0; i < contentLength; i++) {
         message[i + shift] = content_data[i];
@@ -16,11 +16,9 @@ void StreamRecord::fillContentData(int shift, unsigned char* content_data, int c
     }
 }
 
-void StreamRecord::fill(int message_size, unsigned char* data) {
-    //int paddingSize = (8 - message_size%8)%8;
+void StreamRecord::fill(int message_size, unsigned char *data) {
     fillHeader(0, message_size);
     if (message_size == 0) return;
     fillContentData(HEADER_SIZE, data, message_size);
-    //fillHeader(HEADER_SIZE + message_size + paddingSize, 0);
 
 }

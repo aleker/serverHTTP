@@ -14,8 +14,11 @@ public:
     HTTPManager(const char *host, int port);
 
     int prepareServerSocket();
+
     int acceptConnection(ConnectionManager *client) const;
-    int getMessage(ConnectionManager *client, std::string* content_data) const;
+
+    int getMessage(ConnectionManager *client, std::string *content_data) const;
+
     void sendMessage(ConnectionManager *receiver, std::string *message, int id) const;
 
 private:

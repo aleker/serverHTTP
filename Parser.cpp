@@ -192,7 +192,7 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
         int do_heh = od + part_content_size - 1;
         string part_content = stdinContent.substr((unsigned long) ((i - 1) * MAX_SIZE),
                                                   (unsigned long) part_content_size);
-        cout << "Indeksy: " << od << " do" << do_heh << endl;
+        cout << "Indices: " << od << " to" << do_heh << endl;
         strcpy((char *) part_content_data, part_content.c_str());
         padding_size = (8 - part_content_size % 8) % 8;
         record_size = HEADER_SIZE + part_content_size + padding_size;

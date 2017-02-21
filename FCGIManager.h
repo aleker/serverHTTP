@@ -14,6 +14,7 @@ public:
 
 
     int createConnection();
+
     virtual void sendMessage(int clientSocketFd);
 
     virtual ~FCGIManager();

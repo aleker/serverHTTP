@@ -1,10 +1,10 @@
-#include <unistd.h>
 #include "constants.h"
 #include "HTTPManager.h"
 #include "FCGIManager.h"
 #include <thread>
 #include <error.h>
 #include <unordered_set>
+#include <unistd.h>
 #include "ConfigFile.h"
 
 using namespace std;
@@ -14,11 +14,11 @@ std::vector<clientStruct> clients;
 
 // TODO usunąć z maina bo tak
 int random_int(int max) {
-    if (max != -1) return rand()%(max+1) + 0;
+    if (max != -1) return rand() % (max + 1) + 0;
     else return -1;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     if (argc < 3) {
         cerr << "Basic TCP server - set hosting IP and port by args" << endl;
         cerr << "Usage: " << argv[0] << " <server_ip> <server_port>" << endl;
@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     }
 
     // MAIN SERVER CONNECTION
-    HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
+    HTTPManager serverMainConnection(argv[1], atoi(argv[2]));
     serverMainConnection.prepareServerSocket();
     // FCGI CONNECTION:
     int port = 0;
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     bool exit_server = false;
 //    THREAD THAT ACCEPTS CLIENT CONNECTIONS
     std::thread t_clients([=] {
-        while(!exit_server) {
+        while (!exit_server) {
             // CLIENT CONNECTION:
             ConnectionManager clientConnection = ConnectionManager();
             serverMainConnection.acceptConnection(&clientConnection);
@@ -54,15 +54,16 @@ int main(int argc, char** argv) {
         }
     });
     std::thread t_fcgi([=] {
-        while(!exit_server) {
+        while (!exit_server) {
             int random_index;
             // TODO zmienić na FIFO
-            if ((random_index = random_int((int) (clients.size() - 1))) < 0 ) continue;
+            if ((random_index = random_int((int) (clients.size() - 1))) < 0) continue;
             cout << " client " << clients[random_index].descriptor << endl;
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
-            FCGIManager* fcgiConnection = new FCGIManager(ip.c_str(), port);
+            FCGIManager *fcgiConnection = new FCGIManager(ip.c_str(), port);
             fcgiConnection->createConnection();
-            serverMainConnection.sendMessage(fcgiConnection, &clients[random_index].message, clients[random_index].descriptor);
+            serverMainConnection.sendMessage(fcgiConnection, &clients[random_index].message,
+                                             clients[random_index].descriptor);
             // SENDING MESSAGE FROM FCGI TO CLIENT
             fcgiConnection->sendMessage(clients[random_index].descriptor);
             close(clients[random_index].descriptor);
@@ -74,15 +75,10 @@ int main(int argc, char** argv) {
 
     getchar();
     exit_server = true;
-    cout << "\nBĘDĘ ZAMYKAŁ!!!!!! UWAGAAAAAAAAAAAA!!!!!!\n";
     // TODO joiny nie łączą się
     t_clients.join();
     t_fcgi.join();
-    cout << "\nWĄTKI TEŻ POSZŁY!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
     close(serverMainConnection.descriptor);
+    cout << "\nExiting the server. Goodbye!\n";
     return 0;
 }
-
-// TODO usunąć komentarze
-// https://fossies.org/linux/FCGI/fcgiapp.c#l_2190
-// http://web.archive.org/web/20160306081510/http://fastcgi.com/drupal/node/6?q=node/22#SB

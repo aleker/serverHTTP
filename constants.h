@@ -4,6 +4,7 @@
 
 #ifndef SERWERHTTP_CONSTANTS_H
 #define SERWERHTTP_CONSTANTS_H
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -14,7 +15,6 @@ struct clientStruct {
 };
 
 static const size_t bufsize = 1000;
-// TODO różne headery!
 static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
 #define MAX_SIZE                61440.0
 
@@ -50,10 +50,6 @@ static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
 
 // FLAGS:
 #define FCGI_KEEP_CONN          1
-
-// PARSER:
-#define GET_METHOD              1
-#define POST_METHOD             2
 
 
 static std::vector<std::string> CGI_params = {

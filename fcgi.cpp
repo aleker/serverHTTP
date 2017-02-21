@@ -11,7 +11,7 @@
 using namespace std;
 
 // Maximum bytes
-const unsigned long STDIN_MAX = 10000000;
+const unsigned long STDIN_MAX = 1000000;
 
 /**
  * Note this is not thread safe due to the static allocation of the

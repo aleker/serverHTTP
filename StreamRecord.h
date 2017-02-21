@@ -7,7 +7,7 @@
 
 #include "Record.h"
 
-class StreamRecord: public Record {
+class StreamRecord : public Record {
 public:
 
     StreamRecord(int array_size, int type, int request_id);

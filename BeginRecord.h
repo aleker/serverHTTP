@@ -8,7 +8,7 @@
 #include "Record.h"
 
 
-class BeginRecord: public Record{
+class BeginRecord : public Record {
 public:
     BeginRecord(int array_size, int type, int request_id);
 

@@ -14,13 +14,16 @@ public:
     sockaddr_in socketStruct;
     socklen_t socketSize = 0;   // TODO co z tym sajzem?
 
-    ConnectionManager(){};
+    ConnectionManager() {};
+
     ConnectionManager(const char *host, int port);
 
 protected:
     int port;
-    const char* host;
+    const char *host;
+
     int createSocket();
+
     void createSockaddr();
 
 };

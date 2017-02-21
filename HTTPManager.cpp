@@ -11,28 +11,12 @@
 #include "Record.h"
 #include "Parser.h"
 #include "ConfigFile.h"
-#include <sys/select.h>
 #include <fcntl.h>
 
 using namespace std;
 
 HTTPManager::HTTPManager(const char *host, int port) : ConnectionManager(host, port) {}
 
-/*
-   Params:
-      fd       -  (int) socket file descriptor
-      buffer - (char*) buffer to hold data
-      len     - (int) maximum number of bytes to recv()
-      flags   - (int) flags (as the fourth param to recv() )
-      to       - (int) timeout in milliseconds
-   Results:
-      int      - The same as recv, but -2 == TIMEOUT
-   Notes:
-      You can only use it on file descriptors that are sockets!
-      'to' must be different to 0
-      'buffer' must not be NULL and must point to enough memory to hold at least 'len' bytes
-      I WILL mix the C and C++ commenting styles...
-*/
 int recv_to(int fd, unsigned char *buffer, int len, int flags, int to) {
 
     fd_set readset;
@@ -42,12 +26,10 @@ int recv_to(int fd, unsigned char *buffer, int len, int flags, int to) {
     // Initialize the set
     FD_ZERO(&readset);
     FD_SET(fd, &readset);
-
     // Initialize time out struct
     tv.tv_sec = 0;
     tv.tv_usec = to * 1000;
-    // select()
-    result = select(fd+1, &readset, NULL, NULL, &tv);
+    result = select(fd + 1, &readset, NULL, NULL, &tv);
 
     // Check status
     if (result < 0)
@@ -67,9 +49,8 @@ int recv_to(int fd, unsigned char *buffer, int len, int flags, int to) {
 }
 
 
-
-int HTTPManager::bindSocket(){
-    int err = bind(descriptor, (sockaddr*)&socketStruct, sizeof(socketStruct));
+int HTTPManager::bindSocket() {
+    int err = bind(descriptor, (sockaddr *) &socketStruct, sizeof(socketStruct));
     if (err == -1) {
         perror("Error binding the socket!");
         return -1;
@@ -77,16 +58,16 @@ int HTTPManager::bindSocket(){
     return 0;
 }
 
-int HTTPManager::prepareServerSocket(){
+int HTTPManager::prepareServerSocket() {
     if (createSocket() == -1) return -1;
     createSockaddr();
-    if(bindSocket() == -1) return -1;
+    if (bindSocket() == -1) return -1;
     return 0;
 }
 
 int HTTPManager::acceptConnection(ConnectionManager *client) const {
     int enable = 1;
-    client->descriptor = accept(descriptor, (sockaddr*)&client->socketStruct, &client->socketSize);
+    client->descriptor = accept(descriptor, (sockaddr *) &client->socketStruct, &client->socketSize);
     if (client->descriptor == -1) {
         perror("Error accepting client");
         return -1;
@@ -95,7 +76,7 @@ int HTTPManager::acceptConnection(ConnectionManager *client) const {
     return 0;
 }
 
-int HTTPManager::isWhaleMessage(string* content_data) const {
+int HTTPManager::isWhaleMessage(string *content_data) const {
     string content = *content_data;
     int found = (int) content.find("Content-Length:");
     if (found != -1) {
@@ -110,17 +91,17 @@ int HTTPManager::isWhaleMessage(string* content_data) const {
         int found2 = (int) content.find("\n\r\n");
         if (found2 != -1 and found2 > found) {
             string content2 = content.substr((unsigned long) (found2 + 3), content.size() - found2 - 3);
-            cout << "NO MASZ! Content_length od karotki ma " << (int)content2.length() << "\n";
-            if ((int)content2.length() < content_size2) return -1;
+            cout << "NO MASZ! Content_length od karotki ma " << (int) content2.length() << "\n";
+            if ((int) content2.length() < content_size2) return -1;
         }
         return 0;
     }
     return 0;
 }
 
-int HTTPManager::getMessage(ConnectionManager* client, string* content_data) const {
-    cout << "***MESSAGE FROM CLIENT TO HTTP\n";
-    unsigned char* buffer = new unsigned char[100];
+int HTTPManager::getMessage(ConnectionManager *client, string *content_data) const {
+    cout << "***STARTED READING FROM CLIENT TO HTTP\n";
+    unsigned char *buffer = new unsigned char[100];
     ssize_t Len;
     int timeout;
     if (ConfigFile::getConfigFile().readTimeout(&timeout) == -1) return -1;
@@ -129,14 +110,12 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
             content_data->push_back(buffer[i]);
         }
     }
-    delete [] buffer;
-    //cout << *content_data;
-    cout << "\n***END OF MESSAGE FROM CLIENT TO HTTP\n";
+    delete[] buffer;
+    cout << "\n***FINISHED READING FROM CLIENT TO HTTP\n";
     return isWhaleMessage(content_data);   // ;____;
 }
 
-void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int id) const {
-    // TODO upper boundary for message size
+void HTTPManager::sendMessage(ConnectionManager *receiver, string *message, int id) const {
     std::vector<Record> records;
     Parser parser;
     // PARSING MESSAGE
@@ -149,11 +128,10 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int 
     parser.createRecords(&records, request_id, role);
 
     // SENDING RECORDS
-    cout << "***MESSAGE FROM HTTP TO FCGI\n";
+    cout << "***STARTED READING FROM HTTP TO FCGI\n";
     for (Record &record: records) {
-        sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
-               (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
-        //write(1, record.message, (size_t) record.array_size);
+        sendto(receiver->descriptor, record.message, (size_t) record.array_size, 0,
+               (sockaddr *) &(receiver->socketStruct), sizeof(receiver->socketStruct));
     }
-    cout << "\n***END OF MESSAGE FROM HTTP TO FCGI\n";
+    cout << "\n***FINISHED READING FROM HTTP TO FCGI\n";
 }

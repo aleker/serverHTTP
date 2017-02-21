@@ -6,18 +6,18 @@
 #include "constants.h"
 #include <arpa/inet.h>
 
-ConnectionManager::ConnectionManager(const char *host,int port) : port(port), host(host) {}
+ConnectionManager::ConnectionManager(const char *host, int port) : port(port), host(host) {}
 
-int ConnectionManager::createSocket(){
+int ConnectionManager::createSocket() {
     descriptor = socket(PF_INET, SOCK_STREAM, 0);
-    if(descriptor == -1){
+    if (descriptor == -1) {
         perror("Error creating the socket!");
         return -1;
     }
     return 0;
 }
 
-void ConnectionManager::createSockaddr(){
+void ConnectionManager::createSockaddr() {
     sockaddr_in fcgiSocket;
     fcgiSocket.sin_family = AF_INET;
     fcgiSocket.sin_port = htons(port);       // Port serwera
@@ -25,7 +25,6 @@ void ConnectionManager::createSockaddr(){
     socketStruct = fcgiSocket;
 }
 
-//-----------------------------
 
 
 

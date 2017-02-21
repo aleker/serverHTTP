@@ -15,10 +15,12 @@ using namespace std;
 
 class Parser {
 public:
-    Parser(){}
+    Parser() {}
 
-    int parseBrowserMessage(string* message);
+    int parseBrowserMessage(string *message);
+
     void createRecords(vector<Record> *records, int request_id, int role);
+
     string requestMethod;
 
 private:
@@ -30,12 +32,10 @@ private:
     std::string uri;
     std::string serverProtocol;
 
-    //string messageCopy;
     string stdinContent;
 
 
-
-    void prepareAdditionalParamaters(std::string* message);
+    void prepareAdditionalParamaters(std::string *message);
 
     int prepareStandardParameters();
 
