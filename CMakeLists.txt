@@ -19,6 +19,6 @@ add_executable(serverHTTP
         ConfigFile.cpp)
 
 # 2
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lfcgi++ -lfcgi -Wall -pthread")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lfcgi++ -lfcgi -lconfig++ -Wall -pthread")
 
-add_executable(fcgi fcgi.cpp)
+add_executable(fcgi fcgi.cpp ConfigFile.cpp)

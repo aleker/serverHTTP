@@ -3,19 +3,9 @@
 //
 
 #include "ConfigFile.h"
-#include <unistd.h>
-#include <iostream>
 
 ConfigFile::ConfigFile() {
-//    char cwd[1024];
-//    if (getcwd(cwd, sizeof(cwd)) != NULL)
-//        fprintf(stdout, "Current working dir: %s\n", cwd);
-//    else {
-//        perror("getcwd() error");
-//        return;
-//    }
-    // TODO usunąć komentarze
-    cf = (config_t*)malloc(sizeof(config_t));
+    cf = (config_t *) malloc(sizeof(config_t));
     config_init(cf);
     if (!config_read_file(cf, file_name)) {
         fprintf(stderr, "%s:%d - %s\n", config_error_file(cf), config_error_line(cf), config_error_text(cf));
@@ -30,7 +20,7 @@ ConfigFile::~ConfigFile() {
     config_destroy(cf);
 }
 
-int ConfigFile::readFCGI(string* ip, int* port) {
+int ConfigFile::readFCGI(string *ip, int *port) {
     const char *local_ip;
     if (config_lookup_string(cf, "FCGI.ip", &local_ip) != 1) {
         perror("Error reading ip from config file");
@@ -45,7 +35,7 @@ int ConfigFile::readFCGI(string* ip, int* port) {
     return 0;
 }
 
-int ConfigFile::readTimeout(int* timeout) {
+int ConfigFile::readTimeout(int *timeout) {
     if (config_lookup_int(cf, "timeout", timeout) != 1) {
         perror("Error reading timeout from config file");
         return -1;
@@ -53,7 +43,7 @@ int ConfigFile::readTimeout(int* timeout) {
     return 0;
 }
 
-int ConfigFile::readRole(int* role) {
+int ConfigFile::readRole(int *role) {
     if (config_lookup_int(cf, "FCGI.role", role) != 1) {
         perror("Error reading role from config file");
         return -1;

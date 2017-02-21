@@ -5,6 +5,7 @@
 #include <string>
 #include <fcgi_stdio.h>
 #include "fcgio.h"
+#include "ConfigFile.h"
 #include <fstream>
 #include <string.h>
 
@@ -13,10 +14,6 @@ using namespace std;
 // Maximum bytes
 const unsigned long STDIN_MAX = 10000000;
 
-/**
- * Note this is not thread safe due to the static allocation of the
- * content_buffer.
- */
 string get_request_content(const FCGX_Request &request) {
     char *content_length_str = FCGX_GetParam("CONTENT_LENGTH", request.envp);
     unsigned long content_length = STDIN_MAX;
@@ -40,19 +37,12 @@ string get_request_content(const FCGX_Request &request) {
     char *content_buffer = new char[content_length];
     cin.read(content_buffer, content_length);
     content_length = cin.gcount();
-
-    // Chew up any remaining stdin - this shouldn't be necessary
-    // but is because mod_fastcgi doesn't handle it correctly.
-
-    // ignore() doesn't set the eof bit in some versions of glibc++
-    // so use gcount() instead of eof()...
     do cin.ignore(1024); while (cin.gcount() == 1024);
 
     string content(content_buffer, content_length);
     delete[] content_buffer;
     return content;
 }
-//form-data; name="heh"; filename="adelle.txt"
 
 string getFilename(const FCGX_Request &request) {
     const char *contentDisposition = FCGX_GetParam("HTTP_CONTENT_DISPOSITION", request.envp);
@@ -78,10 +68,8 @@ string getFilename(const FCGX_Request &request) {
     return "";
 }
 
-
 int main(void) {
     // Backup the stdio streambufs
-
     streambuf *cin_streambuf = cin.rdbuf();
     streambuf *cout_streambuf = cout.rdbuf();
     streambuf *cerr_streambuf = cerr.rdbuf();
@@ -89,11 +77,16 @@ int main(void) {
     FCGX_Request request;
 
     FCGX_Init();
-    int sock = FCGX_OpenSocket(":8000", 1024);
+    int port;
+    string ip = "";
+    if (ConfigFile::getConfigFile().readFCGI(&ip, &port) == -1) return -1;
+    string s = ":";
+    s.append(to_string(port));
+    char const *port_char = s.c_str();
+    int sock = FCGX_OpenSocket(port_char, 1024);
     FCGX_InitRequest(&request, sock, 0);
 
     while (FCGX_Accept_r(&request) >= 0) {
-
         fcgi_streambuf cin_fcgi_streambuf(request.in);
         fcgi_streambuf cout_fcgi_streambuf(request.out);
         fcgi_streambuf cerr_fcgi_streambuf(request.err);
@@ -104,12 +97,10 @@ int main(void) {
 
         // get the request URI
         const char *uri = FCGX_GetParam("REQUEST_URI", request.envp);
-
         string content = get_request_content(request);
         if (content.length() == 0) {
-            content = ", World!";
+            content = "";
         }
-
         string filename = getFilename(request);
         if (filename.length() > 0) {
             if (filename.substr(filename.length() - 4, 4) == ".txt") {
@@ -154,7 +145,6 @@ int main(void) {
                  << "</html>\n"
                  << "\r\n";
         }
-
     }
 
 // restore stdio streambufs
