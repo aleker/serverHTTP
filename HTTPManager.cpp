@@ -95,10 +95,32 @@ int HTTPManager::acceptConnection(ConnectionManager *client) const {
     return 0;
 }
 
+int HTTPManager::isWhaleMessage(string* content_data) const {
+    string content = *content_data;
+    int found = (int) content.find("Content-Length:");
+    if (found != -1) {
+        string content_size;
+        found += 16;
+        while (isdigit(content[found])) {
+            content_size.push_back(content[found]);
+            found++;
+        }
+        int content_size2 = stoi(content_size);
+        cout << "NO MASZ! Content_length powinien =  " << content_size2 << "\n";
+        int found2 = (int) content.find("\n\r\n");
+        if (found2 != -1 and found2 > found) {
+            string content2 = content.substr((unsigned long) (found2 + 3), content.size() - found2 - 3);
+            cout << "NO MASZ! Content_length od karotki ma " << (int)content2.length() << "\n";
+            if ((int)content2.length() < content_size2) return -1;
+        }
+        return 0;
+    }
+    return 0;
+}
+
 int HTTPManager::getMessage(ConnectionManager* client, string* content_data) const {
     cout << "***MESSAGE FROM CLIENT TO HTTP\n";
     unsigned char* buffer = new unsigned char[100];
-    // TODO serwer nie może zatrzymywać się po przerwanym kliencie
     ssize_t Len;
     int timeout;
     if (ConfigFile::getConfigFile().readTimeout(&timeout) == -1) return -1;
@@ -107,9 +129,10 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
             content_data->push_back(buffer[i]);
         }
     }
-    cout << *content_data;
+    delete [] buffer;
+    //cout << *content_data;
     cout << "\n***END OF MESSAGE FROM CLIENT TO HTTP\n";
-    return 0;
+    return isWhaleMessage(content_data);   // ;____;
 }
 
 void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int id) const {
@@ -130,7 +153,7 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int 
     for (Record &record: records) {
         sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
                (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
-        write(1, record.message, (size_t) record.array_size);
+        //write(1, record.message, (size_t) record.array_size);
     }
     cout << "\n***END OF MESSAGE FROM HTTP TO FCGI\n";
 }

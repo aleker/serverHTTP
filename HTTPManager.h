@@ -20,6 +20,8 @@ public:
 
 private:
     int bindSocket();
+
+    int isWhaleMessage(std::string *content_data) const;
 };
 
 

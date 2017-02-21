@@ -44,7 +44,11 @@ int main(int argc, char** argv) {
             ConnectionManager clientConnection = ConnectionManager();
             serverMainConnection.acceptConnection(&clientConnection);
             string message;
-            serverMainConnection.getMessage(&clientConnection, &message);
+            int result = serverMainConnection.getMessage(&clientConnection, &message);
+            if (result == -1) {
+                perror("Connection with client is canceled.");
+                continue;
+            }
             clientStruct newClient = {clientConnection.descriptor, message};
             clients.push_back(newClient);
         }
@@ -52,6 +56,7 @@ int main(int argc, char** argv) {
     std::thread t_fcgi([=] {
         while(!exit_server) {
             int random_index;
+            // TODO zmienić na FIFO
             if ((random_index = random_int((int) (clients.size() - 1))) < 0 ) continue;
             cout << " client " << clients[random_index].descriptor << endl;
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:

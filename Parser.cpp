@@ -5,12 +5,8 @@
 #include "Parser.h"
 #include <string.h>
 #include <algorithm>
-#include <unistd.h>
-#include <iostream>
-#include <netinet/in.h>
-#include <algorithm>
-#include <string>
 #include <sstream>
+#include <cmath>
 
 int findSubstring(string substring, string mainString) {
     std::size_t found = mainString.find(substring);
@@ -185,20 +181,24 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
 
     // FCGI_STDIN
     int stdin_size = (int) stdinContent.length();
-    int number_of_parts = (int) ceil(stdin_size / MAX_SIZE);
+    int number_of_parts = max((int) ceil(stdin_size / MAX_SIZE), 1);
 
+    cout << "stdin_size = " << stdin_size << endl;
     for (int i = 1; i <= number_of_parts; i++) {
         int part_content_size = (int) min(MAX_SIZE, stdin_size - (i - 1) * MAX_SIZE);
         unsigned char part_content_data[part_content_size];
+        // TODO usunąć od do_heh
+        int od = ((i - 1) * MAX_SIZE);
+        int do_heh = od + part_content_size - 1;
         string part_content = stdinContent.substr((unsigned long) ((i - 1) * MAX_SIZE),
                                                   (unsigned long) part_content_size);
+        cout << "Indeksy: " << od << " do" << do_heh << endl;
         strcpy((char *) part_content_data, part_content.c_str());
         padding_size = (8 - part_content_size % 8) % 8;
         record_size = HEADER_SIZE + part_content_size + padding_size;
         StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
         stdinRecord.fill(part_content_size, part_content_data);
         records->push_back(stdinRecord);
-
     }
     // SEND ONE END RECORD
     if (stdin_size != 0) {
