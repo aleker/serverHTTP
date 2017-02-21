@@ -37,3 +37,36 @@ Run HTTP server with sudo privilege and type ip address and port respectively e.
 sudo ./serverHTTP 0.0.0.0 80
 ```
 You have to remember that fcgi must be running before you start server HTTP.
+
+## Testing
+* GET
+
+To test the GET method, use the Internet brower. Go to address 0.0.0.0 and you should see a simple "Hello world" message.
+Please make sure the server and fcgi application are running. You can also add additional parameters after the /, eg "0.0.0.0/test".
+
+* POST
+
+To test the POST method, you can use curl. It should be already installed on your computer system. If not, you can download it [here](https://curl.haxx.se/download.html).
+Examples of usage:
+ * Simple POST method.
+ 
+The simplest POST method gets the similiar "Hello world" response.
+ ```
+ curl -d "your_text_here" 0.0.0.0:80
+ ```
+ 
+ * Sending a txt file with POST.
+
+Sending the txt file with curl will be forwarded to the fcgi application and then, the fcgi app will create a new txt file
+with the same name and save the sent content.
+  ```
+  curl -F "file=@path_to_txt_file" 0.0.0.0:80
+  ```
+    
+  * Sending file with a different extenstion with POST
+  
+Sending the file with a different extension (eg jpg or pdf files) will get a "Wrong file format" response.
+  ```
+  curl -F "file=@path_to_a_different_file" 0.0.0.0:80
+  ```
+  
