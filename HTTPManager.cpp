@@ -106,11 +106,9 @@ int HTTPManager::isWhaleMessage(string* content_data) const {
             found++;
         }
         int content_size2 = stoi(content_size);
-        cout << "NO MASZ! Content_length powinien =  " << content_size2 << "\n";
         int found2 = (int) content.find("\n\r\n");
         if (found2 != -1 and found2 > found) {
             string content2 = content.substr((unsigned long) (found2 + 3), content.size() - found2 - 3);
-            cout << "NO MASZ! Content_length od karotki ma " << (int)content2.length() << "\n";
             if ((int)content2.length() < content_size2) return -1;
         }
         return 0;
@@ -137,7 +135,6 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
 }
 
 void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int id) const {
-    // TODO upper boundary for message size
     std::vector<Record> records;
     Parser parser;
     // PARSING MESSAGE

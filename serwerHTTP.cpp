@@ -54,9 +54,9 @@ int main(int argc, char** argv) {
     });
     std::thread t_fcgi([=] {
         while(!exit_server) {
-            int random_index;
-            // TODO zmienić na FIFO
-            if ((random_index = random_int((int) (clients.size() - 1))) < 0 ) continue;
+            int random_index = 0;
+            //if ((random_index = random_int((int) (clients.size() - 1))) < 0 ) continue;
+            if (clients.size() <= 0) continue;
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
             FCGIManager* fcgiConnection = new FCGIManager(ip.c_str(), port);
             fcgiConnection->createConnection();

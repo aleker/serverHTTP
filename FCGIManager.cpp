@@ -26,7 +26,6 @@ int FCGIManager::createConnection() {
 }
 
 void FCGIManager::sendMessage(int clientSocketFd) {
-    // TODO obsługa errorów
     std::cout << "\n***MESSAGE FROM FCGI TO CLIENT\n";
     unsigned int message_buf[100];
     ssize_t readBytes = 0;
