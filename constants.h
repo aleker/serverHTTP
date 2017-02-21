@@ -14,7 +14,7 @@ struct clientStruct {
 };
 
 static const size_t bufsize = 1000;
-static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\n";
+static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n\r\n";
 
 #define FCGI_BEGIN_REQUEST       1
 #define FCGI_ABORT_REQUEST       2

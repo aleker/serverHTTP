@@ -70,6 +70,7 @@ int main(int argc, char** argv) {
     getchar();
     exit_server = true;
     cout << "\nBĘDĘ ZAMYKAŁ!!!!!! UWAGAAAAAAAAAAAA!!!!!!\n";
+    // TODO joiny nie łączą się
     t_clients.join();
     t_fcgi.join();
     cout << "\nWĄTKI TEŻ POSZŁY!!!!!!!!!!!!!!!!!!!!!!!!!!\n";

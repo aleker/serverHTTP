@@ -126,7 +126,8 @@ int main(void) {
                      << "  <body>\n"
                      << "    <h1>FILE SAVED./h1>\n"
                      << "  </body>\n"
-                     << "</html>\n";
+                     << "</html>\n"
+                     << "\r\n";
             } else {
                 cout << "Content-type: text/html\r\n"
                      << "\r\n"
@@ -137,7 +138,8 @@ int main(void) {
                      << "  <body>\n"
                      << "    <h1>Wrong file extension./h1>\n"
                      << "  </body>\n"
-                     << "</html>\n";
+                     << "</html>\r\n"
+                     << "\r\n";
             }
         } else {
             cout << "Content-type: text/html\r\n"
@@ -149,7 +151,8 @@ int main(void) {
                  << "  <body>\n"
                  << "    <h1>Hello " << " from " << uri << " !</h1>\n"
                  << "  </body>\n"
-                 << "</html>\n";
+                 << "</html>\n"
+                 << "\r\n";
         }
 
     }
