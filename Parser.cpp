@@ -19,12 +19,12 @@ int findSubstring(string substring, string mainString) {
 string getBoundary(string value) {
     int index = findSubstring("boundary=", value);
     if (index != -1) {
-        string substring = value.substr(index, value.size() - index);
+        string substring = value.substr((unsigned long) index, value.size() - index);
         int index2 = findSubstring(";", substring);
         if (index2 != -1) {
-            return value.substr(index + 9, index2 - index - 9 - 1);
+            return value.substr((unsigned long) (index + 9), (unsigned long) (index2 - index - 9 - 1));
         }
-        return value.substr(index + 9, value.size() - index - 9 - 1);
+        return value.substr((unsigned long) (index + 9), value.size() - index - 9 - 1);
     }
     return "";
 }
@@ -40,14 +40,14 @@ void Parser::prepareAdditionalParamaters(string *message) {
         int index = findSubstring(": ", line);
         // READ PARAMETERS
         if (index != -1) {
-            std::string parameter = line.substr(0, index);
+            std::string parameter = line.substr(0, (unsigned long) index);
             for (int i = 0; i < (signed) parameter.length(); i++) {
-                if (parameter[i] == '-') parameter.replace(i, 1, "_");
+                if (parameter[i] == '-') parameter.replace((unsigned long) i, 1, "_");
             }
             std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::toupper);
             parameter.insert(0, "HTTP_");
             parameters.push_back(parameter);
-            string value = line.substr(index + 2, line.size() - index - 2);
+            string value = line.substr((unsigned long) (index + 2), line.size() - index - 2);
             values.push_back(value);
             if (parameter == "HTTP_CONTENT_TYPE" and boundary.empty()) {
                 boundary = getBoundary(value);
@@ -62,13 +62,12 @@ void Parser::prepareAdditionalParamaters(string *message) {
                 uri.push_back(line[index]);
                 index++;
             }
-            cout << "URI " << uri << "  query " << query << endl;
-            serverProtocol = line.substr(index + 1, line.size() - index - 1);
+            serverProtocol = line.substr((unsigned long) (index + 1), line.size() - index - 1);
         } // READ CONTENT
         else {
             if (line == "\r") continue;
-            int index = findSubstring(boundary, line);
-            if (index >= 0 and !boundary.empty()) stdinContent.append(line.substr(0, index));
+            index = findSubstring(boundary, line);
+            if (index >= 0 and !boundary.empty()) stdinContent.append(line.substr(0, (unsigned long) index));
             else stdinContent.append(line);
             stdinContent.append("\n");
         }
@@ -121,7 +120,6 @@ int Parser::mergeIntoOneMessage(string *content_data) {
             // adding parameter name and value
             content_data->append(CGI_params[i]);
             content_data->append(CGI_values[i]);
-
         }
         catch (exception &e) {
             cout << e.what() << "\n";
@@ -167,7 +165,6 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
     // FCGI_PARAM
     int params_size = (int) contentData.length();
     unsigned char params_data[params_size];
-//    TODO check why strcpy doesn't work
     fromStringToUnsignedCharArray(contentData, &params_data[0]);
     int padding_size = (8 - params_size % 8) % 8;
     int record_size = HEADER_SIZE + params_size + padding_size;
@@ -182,17 +179,11 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
     // FCGI_STDIN
     int stdin_size = (int) stdinContent.length();
     int number_of_parts = max((int) ceil(stdin_size / MAX_SIZE), 1);
-
-    cout << "stdin_size = " << stdin_size << endl;
     for (int i = 1; i <= number_of_parts; i++) {
         int part_content_size = (int) min(MAX_SIZE, stdin_size - (i - 1) * MAX_SIZE);
         unsigned char part_content_data[part_content_size];
-        // TODO usunąć od do_heh
-        int od = ((i - 1) * MAX_SIZE);
-        int do_heh = od + part_content_size - 1;
         string part_content = stdinContent.substr((unsigned long) ((i - 1) * MAX_SIZE),
                                                   (unsigned long) part_content_size);
-        cout << "Indeksy: " << od << " do" << do_heh << endl;
         strcpy((char *) part_content_data, part_content.c_str());
         padding_size = (8 - part_content_size % 8) % 8;
         record_size = HEADER_SIZE + part_content_size + padding_size;
@@ -200,7 +191,7 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
         stdinRecord.fill(part_content_size, part_content_data);
         records->push_back(stdinRecord);
     }
-    // SEND ONE END RECORD
+    // send end stdin record
     if (stdin_size != 0) {
         Record endRecord(HEADER_SIZE, FCGI_STDIN, request_id);
         records->push_back(endRecord);

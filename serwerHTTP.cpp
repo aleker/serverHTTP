@@ -12,7 +12,6 @@ using namespace std;
 // client sockets
 std::vector<clientStruct> clients;
 
-// TODO usunąć z maina bo tak
 int random_int(int max) {
     if (max != -1) return rand()%(max+1) + 0;
     else return -1;
@@ -25,19 +24,19 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    // MAIN SERVER CONNECTION
-    HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
-    serverMainConnection.prepareServerSocket();
-    // FCGI CONNECTION:
+    // FCGI CONNECTION - read info:
     int port = 0;
     string ip = "";
     if (ConfigFile::getConfigFile().readFCGI(&ip, &port) == -1) return 0;
 
+    // MAIN SERVER CONNECTION
+    HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
+    serverMainConnection.prepareServerSocket();
     int res = listen(serverMainConnection.descriptor, 1);
     if (res) error(1, errno, "listen failed!");
 
     bool exit_server = false;
-//    THREAD THAT ACCEPTS CLIENT CONNECTIONS
+    // THREAD THAT ACCEPTS CLIENT CONNECTIONS
     std::thread t_clients([=] {
         while(!exit_server) {
             // CLIENT CONNECTION:
@@ -58,7 +57,6 @@ int main(int argc, char** argv) {
             int random_index;
             // TODO zmienić na FIFO
             if ((random_index = random_int((int) (clients.size() - 1))) < 0 ) continue;
-            cout << " client " << clients[random_index].descriptor << endl;
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
             FCGIManager* fcgiConnection = new FCGIManager(ip.c_str(), port);
             fcgiConnection->createConnection();
@@ -69,20 +67,13 @@ int main(int argc, char** argv) {
             clients.erase(clients.begin() + random_index);
             delete fcgiConnection;
         }
-
     });
 
     getchar();
     exit_server = true;
-    cout << "\nBĘDĘ ZAMYKAŁ!!!!!! UWAGAAAAAAAAAAAA!!!!!!\n";
-    // TODO joiny nie łączą się
     t_clients.join();
     t_fcgi.join();
-    cout << "\nWĄTKI TEŻ POSZŁY!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+    cout << "bye bye\n";
     close(serverMainConnection.descriptor);
     return 0;
 }
-
-// TODO usunąć komentarze
-// https://fossies.org/linux/FCGI/fcgiapp.c#l_2190
-// http://web.archive.org/web/20160306081510/http://fastcgi.com/drupal/node/6?q=node/22#SB

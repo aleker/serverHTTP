@@ -10,32 +10,28 @@
 #include "BeginRecord.h"
 #include <vector>
 
-
 using namespace std;
 
 class Parser {
 public:
-    Parser(){}
-
-    int parseBrowserMessage(string* message);
-    void createRecords(vector<Record> *records, int request_id, int role);
     string requestMethod;
 
+    Parser() {}
+
+    int parseBrowserMessage(string *message);
+
+    void createRecords(vector<Record> *records, int request_id, int role);
+
 private:
-
-    vector<std::string> parameters;
-    vector<std::string> values;
-    vector<std::string> CGI_values;
-    std::string query;
-    std::string uri;
-    std::string serverProtocol;
-
-    //string messageCopy;
+    vector<string> parameters;
+    vector<string> values;
+    vector<string> CGI_values;
+    string query;
+    string uri;
+    string serverProtocol;
     string stdinContent;
 
-
-
-    void prepareAdditionalParamaters(std::string* message);
+    void prepareAdditionalParamaters(string *message);
 
     int prepareStandardParameters();
 
