@@ -57,7 +57,7 @@ void Parser::prepareAdditionalParamaters(string *message) {
                 boundary = getBoundary(value);
             }
         }// READ GET/POST ONLY ONCE
-        else if (!request_method_founded and findSubstring("/", line) != -1) {
+        else if (!request_method_founded and (index=findSubstring("/", line)) != -1) {
             request_method_founded = true;
             bool queryStart = false;
             while (line[index] != ' ') {
@@ -66,6 +66,7 @@ void Parser::prepareAdditionalParamaters(string *message) {
                 uri.push_back(line[index]);
                 index++;
             }
+            cout << "URI " << uri << "  query " << query <<endl;
             serverProtocol = line.substr(index + 1, line.size() - index - 1);
         } // READ CONTENT
         else {
