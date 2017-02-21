@@ -17,10 +17,10 @@ void StreamRecord::fillContentData(int shift, unsigned char* content_data, int c
 }
 
 void StreamRecord::fill(int message_size, unsigned char* data) {
-    int paddingSize = (8 - message_size%8)%8;
+    //int paddingSize = (8 - message_size%8)%8;
     fillHeader(0, message_size);
     if (message_size == 0) return;
     fillContentData(HEADER_SIZE, data, message_size);
-    fillHeader(HEADER_SIZE + message_size + paddingSize, 0);
+    //fillHeader(HEADER_SIZE + message_size + paddingSize, 0);
 
 }

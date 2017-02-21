@@ -167,6 +167,7 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
     // FCGI_BEGIN
     BeginRecord beginRecord(HEADER_SIZE + BEGIN_REQUEST_BODY_SIZE, FCGI_BEGIN_REQUEST, request_id);
     beginRecord.fill(role);
+    records->push_back(beginRecord);
 
     // FCGI_PARAM
     int params_size = (int) contentData.length();
@@ -174,22 +175,28 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
 //    TODO check why strcpy doesn't work
     fromStringToUnsignedCharArray(contentData, &params_data[0]);
     int padding_size = (8 - params_size%8)%8;
-    int record_size = HEADER_SIZE + params_size + padding_size + HEADER_SIZE;
-    if (params_size == 0) record_size -= HEADER_SIZE;
+    int record_size = HEADER_SIZE + params_size + padding_size;
     StreamRecord paramRecord(record_size, FCGI_PARAMS, request_id);
     paramRecord.fill(params_size, params_data);
+    records->push_back(paramRecord);
+    if (params_size != 0) {
+        Record endParamsRecord(HEADER_SIZE, FCGI_PARAMS, request_id);
+        records->push_back(endParamsRecord);
+    }
 
     // FCGI_STDIN
     int stdin_size = (int) stdinContent.length();
+//    int number_of_parts = (stdin_size / ( 64 * 1024 )) + 1;
     unsigned char stdin_data[stdin_size];
     strcpy((char *) stdin_data, stdinContent.c_str());
     padding_size = (8 - stdin_size%8)%8;
-    record_size = HEADER_SIZE + stdin_size + padding_size + HEADER_SIZE;
-    if (stdin_size == 0) record_size -= HEADER_SIZE;
+    record_size = HEADER_SIZE + stdin_size + padding_size;
     StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
     stdinRecord.fill(stdin_size, stdin_data);
-
-    records->push_back(beginRecord);
-    records->push_back(paramRecord);
     records->push_back(stdinRecord);
+    if (stdin_size != 0) {
+        Record endRecord(HEADER_SIZE, FCGI_STDIN, request_id);
+        records->push_back(endRecord);
+    }
+
 }
