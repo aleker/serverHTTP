@@ -32,8 +32,8 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     unsigned int message_buf[100];
     ssize_t readBytes = 0;
     recv(descriptor, &message_buf, 8, 0);
-    write(1, &answerHeader, sizeof(answerHeader));
-    write(clientSocketFd, &answerHeader, sizeof(answerHeader));
+    write(1, &answerHeader, sizeof(answerHeader)-1);
+    write(clientSocketFd, &answerHeader, sizeof(answerHeader)-1);
     while ((readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0)) != 0) {
         write(clientSocketFd, &message_buf, (size_t)readBytes);
         write(1, &message_buf, (size_t)readBytes);
