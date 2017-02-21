@@ -132,6 +132,7 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     delete [] buffer;
     //cout << *content_data;
     cout << "\n***END OF MESSAGE FROM CLIENT TO HTTP\n";
+    if (Len == -1) return -1;
     return isWhaleMessage(content_data);   // ;____;
 }
 

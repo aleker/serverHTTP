@@ -35,8 +35,16 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     write(1, &answerHeader, sizeof(answerHeader)-1);
     write(clientSocketFd, &answerHeader, sizeof(answerHeader)-1);
     while ((readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0)) != 0) {
-        write(clientSocketFd, &message_buf, (size_t)readBytes);
-        write(1, &message_buf, (size_t)readBytes);
+        try {
+            //write(clientSocketFd, &message_buf, (size_t) readBytes);
+            send(clientSocketFd, &message_buf,(size_t) readBytes, 0);
+            write(1, &message_buf, (size_t) readBytes);
+        }
+        catch (std::exception &e) {
+            std::cout << e.what();
+            perror("Connection with client canceled.");
+            break;
+        }
     }
     std::cout << "\n***END OF MESSAGE FROM FCGI TO CLIENT\n";
 }
