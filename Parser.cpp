@@ -26,9 +26,9 @@ string getBoundary(string value) {
         string substring = value.substr(index, value.size() - index);
         int index2 = findSubstring(";", substring);
         if (index2 != -1) {
-            return value.substr(index + 9, index2-index-9 - 1);
+            return value.substr(index + 9, index2 - index - 9 - 1);
         }
-        return value.substr(index + 9, value.size()-index-9 - 1);
+        return value.substr(index + 9, value.size() - index - 9 - 1);
     }
     return "";
 }
@@ -57,7 +57,7 @@ void Parser::prepareAdditionalParamaters(string *message) {
                 boundary = getBoundary(value);
             }
         }// READ GET/POST ONLY ONCE
-        else if (!request_method_founded and (index=findSubstring("/", line)) != -1) {
+        else if (!request_method_founded and (index = findSubstring("/", line)) != -1) {
             request_method_founded = true;
             bool queryStart = false;
             while (line[index] != ' ') {
@@ -66,7 +66,7 @@ void Parser::prepareAdditionalParamaters(string *message) {
                 uri.push_back(line[index]);
                 index++;
             }
-            cout << "URI " << uri << "  query " << query <<endl;
+            cout << "URI " << uri << "  query " << query << endl;
             serverProtocol = line.substr(index + 1, line.size() - index - 1);
         } // READ CONTENT
         else {
@@ -85,7 +85,7 @@ int Parser::prepareStandardParameters() {
     CGI_values.push_back(requestMethod);
     CGI_values.push_back(uri);
     CGI_values.push_back(query);
-    for (int i = 0; i < (signed)parameters.size(); i++) {
+    for (int i = 0; i < (signed) parameters.size(); i++) {
         if (parameters[i] == "HTTP_CONTENT_LENGTH") {
             CGI_values.push_back(values[i]);
         }
@@ -98,13 +98,12 @@ int Parser::prepareStandardParameters() {
     return 0;
 }
 
-int Parser::parseBrowserMessage(string* message){
-    if(findSubstring("favicon", *message) != -1)
+int Parser::parseBrowserMessage(string *message) {
+    if (findSubstring("favicon", *message) != -1)
         return -1;
-    else if (findSubstring("GET ", *message) != -1){
+    else if (findSubstring("GET ", *message) != -1) {
         requestMethod = "GET";
-    }
-    else if (findSubstring("POST ", *message) != -1){
+    } else if (findSubstring("POST ", *message) != -1) {
         requestMethod = "POST";
     }
     prepareAdditionalParamaters(message);
@@ -112,23 +111,23 @@ int Parser::parseBrowserMessage(string* message){
     return 0;
 }
 
-int Parser::mergeIntoOneMessage(string* content_data) {
+int Parser::mergeIntoOneMessage(string *content_data) {
     // STANDARD PARAMETERS
-    for (int i = 0; i < (signed)CGI_values.size(); i++) {
+    for (int i = 0; i < (signed) CGI_values.size(); i++) {
         try {
             if (CGI_values[i][CGI_values[i].length() - 1] == '\r')
                 CGI_values[i].erase(CGI_values[i].begin() + CGI_values[i].length() - 1);
             // adding sizes of parameter name and value
-            char size2 = char((int)CGI_params[i].length());
+            char size2 = char((int) CGI_params[i].length());
             content_data->push_back(size2);
-            size2 = char((int)CGI_values[i].length());
+            size2 = char((int) CGI_values[i].length());
             content_data->push_back(size2);
             // adding parameter name and value
             content_data->append(CGI_params[i]);
             content_data->append(CGI_values[i]);
 
         }
-        catch (exception& e){
+        catch (exception &e) {
             cout << e.what() << "\n";
             perror("Error merging parameters into one message");
             return -1;
@@ -136,15 +135,15 @@ int Parser::mergeIntoOneMessage(string* content_data) {
     }
 
     // ADDITIONAL PARAMETERS
-    for (int i = 0; i < (signed)parameters.size(); i++) {
+    for (int i = 0; i < (signed) parameters.size(); i++) {
         if (parameters[i][parameters[i].length() - 1] == '\r')
             parameters[i].erase(parameters[i].begin() + parameters[i].length() - 1);
         if (values[i][values[i].length() - 1] == '\r')
             values[i].erase(values[i].begin() + values[i].length() - 1);
         // adding sizes of parameter name and value
-        char size2 = char((int)parameters[i].length());
+        char size2 = char((int) parameters[i].length());
         content_data->push_back(size2);
-        size2 = char((int)values[i].length());
+        size2 = char((int) values[i].length());
         content_data->push_back(size2);
         // adding parameter name and value
         content_data->append(parameters[i]);
@@ -153,14 +152,14 @@ int Parser::mergeIntoOneMessage(string* content_data) {
     return 0;
 }
 
-void fromStringToUnsignedCharArray(string original_data, unsigned char* output) {
-    for (int i = 0; i < (signed)original_data.length(); i++) {
+void fromStringToUnsignedCharArray(string original_data, unsigned char *output) {
+    for (int i = 0; i < (signed) original_data.length(); i++) {
         output[i] = (unsigned char) original_data[i];
     }
     return;
 }
 
-void Parser::createRecords(vector<Record>* records, int request_id, int role) {
+void Parser::createRecords(vector<Record> *records, int request_id, int role) {
     string contentData;
     mergeIntoOneMessage(&contentData);
 
@@ -174,7 +173,7 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
     unsigned char params_data[params_size];
 //    TODO check why strcpy doesn't work
     fromStringToUnsignedCharArray(contentData, &params_data[0]);
-    int padding_size = (8 - params_size%8)%8;
+    int padding_size = (8 - params_size % 8) % 8;
     int record_size = HEADER_SIZE + params_size + padding_size;
     StreamRecord paramRecord(record_size, FCGI_PARAMS, request_id);
     paramRecord.fill(params_size, params_data);
@@ -186,14 +185,22 @@ void Parser::createRecords(vector<Record>* records, int request_id, int role) {
 
     // FCGI_STDIN
     int stdin_size = (int) stdinContent.length();
-//    int number_of_parts = (stdin_size / ( 64 * 1024 )) + 1;
-    unsigned char stdin_data[stdin_size];
-    strcpy((char *) stdin_data, stdinContent.c_str());
-    padding_size = (8 - stdin_size%8)%8;
-    record_size = HEADER_SIZE + stdin_size + padding_size;
-    StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
-    stdinRecord.fill(stdin_size, stdin_data);
-    records->push_back(stdinRecord);
+    int number_of_parts = (int) ceil(stdin_size / MAX_SIZE);
+
+    for (int i = 1; i <= number_of_parts; i++) {
+        int part_content_size = (int) min(MAX_SIZE, stdin_size - (i - 1) * MAX_SIZE);
+        unsigned char part_content_data[part_content_size];
+        string part_content = stdinContent.substr((unsigned long) ((i - 1) * MAX_SIZE),
+                                                  (unsigned long) part_content_size);
+        strcpy((char *) part_content_data, part_content.c_str());
+        padding_size = (8 - part_content_size % 8) % 8;
+        record_size = HEADER_SIZE + part_content_size + padding_size;
+        StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
+        stdinRecord.fill(part_content_size, part_content_data);
+        records->push_back(stdinRecord);
+
+    }
+    // SEND ONE END RECORD
     if (stdin_size != 0) {
         Record endRecord(HEADER_SIZE, FCGI_STDIN, request_id);
         records->push_back(endRecord);
