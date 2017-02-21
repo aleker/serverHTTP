@@ -98,8 +98,6 @@ int HTTPManager::acceptConnection(ConnectionManager *client) const {
 int HTTPManager::getMessage(ConnectionManager* client, string* content_data) const {
     cout << "***MESSAGE FROM CLIENT TO HTTP\n";
     unsigned char* buffer = new unsigned char[100];
-    //ssize_t Len = read(client->descriptor, content_data, bufsize);
-    //cout << content_data;
     // TODO serwer nie może zatrzymywać się po przerwanym kliencie
     ssize_t Len;
     int timeout;

@@ -37,8 +37,6 @@ private:
 
     void prepareAdditionalParamaters(std::string* message);
 
-    int findSubstring(string substring, string mainString);
-
     int prepareStandardParameters();
 
     int mergeIntoOneMessage(string *content_data);

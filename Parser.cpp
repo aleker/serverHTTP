@@ -12,49 +12,68 @@
 #include <string>
 #include <sstream>
 
-int Parser::findSubstring(string substring, string mainString){
+int findSubstring(string substring, string mainString) {
     std::size_t found = mainString.find(substring);
-    if (found!=std::string::npos){
+    if (found != std::string::npos) {
         return (int) found;
     }
     return -1;
 }
 
-void Parser::prepareAdditionalParamaters(string* message) {
+string getBoundary(string value) {
+    int index = findSubstring("boundary=", value);
+    if (index != -1) {
+        string substring = value.substr(index, value.size() - index);
+        int index2 = findSubstring(";", substring);
+        if (index2 != -1) {
+            return value.substr(index + 9, index2-index-9 - 1);
+        }
+        return value.substr(index + 9, value.size()-index-9 - 1);
+    }
+    return "";
+}
+
+
+void Parser::prepareAdditionalParamaters(string *message) {
     std::istringstream f(*message);
     std::string line;
     bool request_method_founded = false;
+    string boundary = "";
 
     while (std::getline(f, line)) {
         int index = findSubstring(": ", line);
         // READ PARAMETERS
         if (index != -1) {
             std::string parameter = line.substr(0, index);
-            for (int i = 0; i < (signed)parameter.length(); i++) {
+            for (int i = 0; i < (signed) parameter.length(); i++) {
                 if (parameter[i] == '-') parameter.replace(i, 1, "_");
             }
             std::transform(parameter.begin(), parameter.end(), parameter.begin(), ::toupper);
             parameter.insert(0, "HTTP_");
             parameters.push_back(parameter);
-            values.push_back(line.substr(index + 2, line.size() - index - 2));
-        } else if (line.size() > 1) {
-            index = findSubstring("/", line);
-            // READ GET/POST ONLY ONCE
-            if(!request_method_founded and index != -1) {
-                request_method_founded = true;
-                bool queryStart = false;
-                while (line[index] != ' ') {
-                    if(line[index] == '?') queryStart = true;
-                    if(queryStart) query.push_back(line[index]);
-                    uri.push_back(line[index]);
-                    index++;
-                }
-                serverProtocol = line.substr(index+1, line.size()-index-1);
+            string value = line.substr(index + 2, line.size() - index - 2);
+            values.push_back(value);
+            if (parameter == "HTTP_CONTENT_TYPE" and boundary.empty()) {
+                boundary = getBoundary(value);
             }
-                // READ CONTENT
-            else {
-                stdinContent.append(line);
+        }// READ GET/POST ONLY ONCE
+        else if (!request_method_founded and findSubstring("/", line) != -1) {
+            request_method_founded = true;
+            bool queryStart = false;
+            while (line[index] != ' ') {
+                if (line[index] == '?') queryStart = true;
+                if (queryStart) query.push_back(line[index]);
+                uri.push_back(line[index]);
+                index++;
             }
+            serverProtocol = line.substr(index + 1, line.size() - index - 1);
+        } // READ CONTENT
+        else {
+            if (line == "\r") continue;
+            int index = findSubstring(boundary, line);
+            if (index >= 0 and !boundary.empty()) stdinContent.append(line.substr(0, index));
+            else stdinContent.append(line);
+            stdinContent.append("\n");
         }
     }
 }
