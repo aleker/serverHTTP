@@ -107,7 +107,7 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
             content_data->push_back(buffer[i]);
         }
     }
-    cout << *content_data;
+    //cout << *content_data;
     cout << "\n***END OF MESSAGE FROM CLIENT TO HTTP\n";
     return 0;
 }
@@ -130,7 +130,7 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int 
     for (Record &record: records) {
         sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
                (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
-        write(1, record.message, (size_t) record.array_size);
+        //write(1, record.message, (size_t) record.array_size);
     }
     cout << "\n***END OF MESSAGE FROM HTTP TO FCGI\n";
 }

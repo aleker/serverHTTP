@@ -4,13 +4,9 @@
 
 #include "Parser.h"
 #include <string.h>
-#include <algorithm>
-#include <unistd.h>
-#include <iostream>
-#include <netinet/in.h>
-#include <algorithm>
-#include <string>
 #include <sstream>
+#include <cmath>
+#include <algorithm>
 
 int findSubstring(string substring, string mainString) {
     std::size_t found = mainString.find(substring);
@@ -185,10 +181,12 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
 
     // FCGI_STDIN
     int stdin_size = (int) stdinContent.length();
-    int number_of_parts = (int) ceil(stdin_size / MAX_SIZE);
+    int number_of_parts = max(1, (int) ceil(stdin_size / MAX_SIZE));
+    cout << "number of parts!! " << number_of_parts << endl;
 
     for (int i = 1; i <= number_of_parts; i++) {
         int part_content_size = (int) min(MAX_SIZE, stdin_size - (i - 1) * MAX_SIZE);
+        cout << "part content size!!" << part_content_size << endl;
         unsigned char part_content_data[part_content_size];
         string part_content = stdinContent.substr((unsigned long) ((i - 1) * MAX_SIZE),
                                                   (unsigned long) part_content_size);
@@ -198,6 +196,7 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
         StreamRecord stdinRecord(record_size, FCGI_STDIN, request_id);
         stdinRecord.fill(part_content_size, part_content_data);
         records->push_back(stdinRecord);
+        cout << "I have pushed another record \n";
 
     }
     // SEND ONE END RECORD
