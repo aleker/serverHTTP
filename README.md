@@ -36,7 +36,6 @@ Run HTTP server with sudo privilege and type ip address and port respectively e.
 ```
 sudo ./serverHTTP 0.0.0.0 80
 ```
-You have to remember that fcgi must be running before you start server HTTP.
 
 ## Testing
 * GET
