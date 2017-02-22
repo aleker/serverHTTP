@@ -18,21 +18,6 @@ using namespace std;
 
 HTTPManager::HTTPManager(const char *host, int port) : ConnectionManager(host, port) {}
 
-/*
-   Params:
-      fd       -  (int) socket file descriptor
-      buffer - (char*) buffer to hold data
-      len     - (int) maximum number of bytes to recv()
-      flags   - (int) flags (as the fourth param to recv() )
-      to       - (int) timeout in milliseconds
-   Results:
-      int      - The same as recv, but -2 == TIMEOUT
-   Notes:
-      You can only use it on file descriptors that are sockets!
-      'to' must be different to 0
-      'buffer' must not be NULL and must point to enough memory to hold at least 'len' bytes
-      I WILL mix the C and C++ commenting styles...
-*/
 int recv_to(int fd, unsigned char *buffer, int len, int flags, int to) {
 
     fd_set readset;
@@ -65,7 +50,6 @@ int recv_to(int fd, unsigned char *buffer, int len, int flags, int to) {
     }
     return -2;
 }
-
 
 
 int HTTPManager::bindSocket(){
@@ -117,7 +101,7 @@ int HTTPManager::isWhaleMessage(string* content_data) const {
 }
 
 int HTTPManager::getMessage(ConnectionManager* client, string* content_data) const {
-    cout << "***MESSAGE FROM CLIENT TO HTTP\n";
+    cout << "\n***MESSAGE FROM CLIENT TO HTTP\n";
     unsigned char* buffer = new unsigned char[100];
     ssize_t Len;
     int timeout;
@@ -127,9 +111,12 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
             content_data->push_back(buffer[i]);
         }
     }
+    if (content_data->length() == 0) {
+        cout << "RESET!\n";
+        return -1;
+    }
     delete [] buffer;
-    //cout << *content_data;
-    cout << "\n***END OF MESSAGE FROM CLIENT TO HTTP\n";
+    cout << "***END OF MESSAGE FROM CLIENT TO HTTP\n";
     if (Len == -1) return -1;
     return isWhaleMessage(content_data);   // ;____;
 }
@@ -147,11 +134,10 @@ void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int 
     parser.createRecords(&records, request_id, role);
 
     // SENDING RECORDS
-    cout << "***MESSAGE FROM HTTP TO FCGI\n";
+    cout << "\n***MESSAGE FROM HTTP TO FCGI\n";
     for (Record &record: records) {
         sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
                (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
-        //write(1, record.message, (size_t) record.array_size);
     }
-    cout << "\n***END OF MESSAGE FROM HTTP TO FCGI\n";
+    cout << "***END OF MESSAGE FROM HTTP TO FCGI\n";
 }
