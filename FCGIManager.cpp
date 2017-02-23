@@ -8,6 +8,7 @@
 #include <cstring>
 #include "FCGIManager.h"
 #include "constants.h"
+using namespace std;
 
 FCGIManager::FCGIManager(const char *host, int port) : ConnectionManager(host, port) {}
 
@@ -27,7 +28,6 @@ int FCGIManager::createConnection() {
     return 0;
 }
 
-
 void FCGIManager::sendMessage(int clientSocketFd) {
     std::cout << "\n***MESSAGE FROM FCGI TO CLIENT\n";
     unsigned char message_buf[8];
@@ -44,19 +44,24 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     end_header[2] = message_buf[2];
     end_header[3] = message_buf[3];
 
+    int i = 0;
     bool stop_reading = false;
     while (1) {
         // Reading 8 bytes at a time
         // TODO do sth with readBytes == 0
+        i++;
         readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0);
+            if (readBytes != 0 ) cout << "reading bytes..." << i <<  "   received  " << readBytes << endl;
         if (strcmp((const char *) message_buf, (const char *) end_header) == 0) {
+            cout << "END HEADER FOUND \n";
             stop_reading = true;
         } else {
             if (stop_reading) {
+                cout << "reading last 8 bytes to get the app status! " << endl;
                 // get the appStatus here
                 int appStatus = int(message_buf[0] << 24 |
                                     message_buf[1] << 16 |
-                                    message_buf[2] << 8 |
+                                    message_buf[2] << 8  |
                                     message_buf[3]);
                 std::cout << "appStatus " << appStatus << std::endl;
                 break;
@@ -72,7 +77,6 @@ void FCGIManager::sendMessage(int clientSocketFd) {
         }
     }
     std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT\n";
-
 }
 
 FCGIManager::~FCGIManager() {}
