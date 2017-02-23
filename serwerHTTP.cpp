@@ -31,10 +31,12 @@ int main(int argc, char** argv) {
     // FCGI CONNECTION - read info:
     int port = 0;
     string ip = "";
-    if (ConfigFile::getConfigFile().readFCGI(&ip, &port) == -1) return 0;
+    if (ConfigFile::getConfigFile().readFCGI(&ip, &port) == -1) return -1;
 
     // MAIN SERVER CONNECTION
     HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
+    if (ConfigFile::getConfigFile().readTimeout(&serverMainConnection.timeout) == -1) return -1;
+    if (ConfigFile::getConfigFile().readRole(&serverMainConnection.role) == -1) return -1;
     serverMainConnection.prepareServerSocket();
     int res = listen(serverMainConnection.descriptor, 1);
     if (res) error(1, errno, "listen failed!");
@@ -52,8 +54,7 @@ int main(int argc, char** argv) {
             clients_descriptors.insert(client.descriptor);
             cout << "clients_count: " << clients_descriptors.size() << endl;
             string message;
-            int result = serverMainConnection.getMessage(&client, &message);
-            if (result == -1) {
+            if (serverMainConnection.getMessage(&client, &message) == -1) {
                 perror("Connection with client is canceled.");
                 clients_descriptors.erase(client.descriptor);
                 return;
@@ -61,13 +62,17 @@ int main(int argc, char** argv) {
             // TODO niewysyłanie wszystkiego do FCGI
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
             FCGIManager *fcgiConnection = new FCGIManager(ip.c_str(), port);
-            fcgiConnection->createConnection();
-            serverMainConnection.sendMessage(fcgiConnection, &message, client.descriptor);
-            // SENDING MESSAGE FROM FCGI TO CLIENT
-            fcgiConnection->sendMessage(client.descriptor);
+            if (fcgiConnection->createConnection() != -1) {
+                if (serverMainConnection.sendMessage(fcgiConnection, &message, client.descriptor) == -1)
+                    goto end_connection;
+                // SENDING MESSAGE FROM FCGI TO CLIENT
+                fcgiConnection->sendMessage(client.descriptor);
+            }
+            end_connection:
             clients_descriptors.erase(client.descriptor);
             close(client.descriptor);
             delete fcgiConnection;
+            return;
         }, clientConnection);
 
         t_client.detach();

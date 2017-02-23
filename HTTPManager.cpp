@@ -69,12 +69,12 @@ int HTTPManager::prepareServerSocket(){
 }
 
 int HTTPManager::isWhaleMessage(string* content_data) const {
-    // TODO wejście na stronę'example.com/Content-Length:/123' nie będzie możliwe?
     string content = *content_data;
-    int found = (int) content.find("Content-Length:");
+    int found = (int) content.find("\nContent-Length:");
     if (found != -1) {
         string content_size;
         found += 16;
+        while (content[found] == ASCII_SPACE) found++;
         while (isdigit(content[found])) {
             content_size.push_back(content[found]);
             found++;
@@ -83,7 +83,8 @@ int HTTPManager::isWhaleMessage(string* content_data) const {
         int found2 = (int) content.find("\n\r\n");
         if (found2 != -1 and found2 > found) {
             string content2 = content.substr((unsigned long) (found2 + 3), content.size() - found2 - 3);
-            if ((int)content2.length() < content_size2) return -1;
+            if ((int)content2.length() < content_size2)
+                return -1;
         }
         return 0;
     }
@@ -94,10 +95,7 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     cout << "\n***MESSAGE FROM CLIENT TO HTTP\n";
     unsigned char* buffer = new unsigned char[100];
     ssize_t Len;
-    int timeout;
-    // TODO pojedyncze wczytywanie konfiguracji
     // TODO SIGHUP?
-    if (ConfigFile::getConfigFile().readTimeout(&timeout) == -1) return -1;
     // TODO zamiast resv_to -> setsockopt SO_RCVTIME0
     // TODO czytacie aż nie będzie timeouta; czy to nie spowoduje że odpowiecie
     // timeout milisekund po tym jak dotrze ostatni kawałek zapytania?
@@ -116,23 +114,28 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     return isWhaleMessage(content_data);   // ;____;
 }
 
-void HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int id) const {
+int HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int id) const {
     std::vector<Record> records;
     Parser parser;
     // PARSING MESSAGE
     parser.parseBrowserMessage(message);
 
     // CREATE RECORDS
-    int request_id = id;
-    int role;
-    if (ConfigFile::getConfigFile().readRole(&role) == -1) return;
-    parser.createRecords(&records, request_id, role);
+    parser.createRecords(&records, id, role);
 
     // SENDING RECORDS
     cout << "\n***MESSAGE FROM HTTP TO FCGI\n";
     for (Record &record: records) {
-        sendto(receiver->descriptor, record.message, (size_t )record.array_size, 0,
-               (sockaddr*)&(receiver->socketStruct), sizeof(receiver->socketStruct));
+        try {
+            sendto(receiver->descriptor, record.message, (size_t) record.array_size, 0,
+                   (sockaddr *) &(receiver->socketStruct), sizeof(receiver->socketStruct));
+        }
+        catch (exception &e) {
+            cout << e.what();
+            perror("Error sending message to FCGI server.");
+            return -1;
+        }
     }
     cout << "***END OF MESSAGE FROM HTTP TO FCGI\n";
+    return 0;
 }

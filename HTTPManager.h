@@ -10,16 +10,18 @@
 
 class HTTPManager : public ConnectionManager {
 public:
+    int timeout;
+    int role;
 
     HTTPManager(const char *host, int port);
 
     int prepareServerSocket();
     int getMessage(ConnectionManager *client, std::string* content_data) const;
-    void sendMessage(ConnectionManager *receiver, std::string *message, int id) const;
+    int sendMessage(ConnectionManager *receiver, std::string *message, int id) const;
 
 private:
-    int bindSocket();
 
+    int bindSocket();
     int isWhaleMessage(std::string *content_data) const;
 };
 

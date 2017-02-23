@@ -9,7 +9,7 @@
 #include <vector>
 #include <string>
 
-
+#define ASCII_SPACE             32
 static const size_t bufsize = 1000;
 static const unsigned char answerHeader[] = "HTTP/1.1 200 OK\r\n";
 #define MAX_SIZE                61440.0
