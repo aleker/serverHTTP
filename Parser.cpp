@@ -209,19 +209,7 @@ void Parser::reparse() {
 }
 
 void Parser::createHTTPResponse(string* HTTPresponse){
-    //reparse();
     HTTPresponse->append(answerHeader);
-//    for (int i = 0; i < (signed) parameters.size(); i++) {
-//        try {
-//            HTTPresponse->append(parameters[i]);
-//            HTTPresponse->append(values[i]);
-//        }
-//        catch (exception &e) {
-//            cout << e.what() << "\n";
-//            perror("Error merging parameters into one message");
-//            return;
-//        }
-//    }
     HTTPresponse->append("Content-type: text/html\r\n");
     HTTPresponse->append("\r\n");
     HTTPresponse->append("<html>\n<head>\n<title>Hello, World!</title>\n</head>\n<body>\n<h1>Hello from ");

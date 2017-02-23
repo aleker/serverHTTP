@@ -49,7 +49,9 @@ int main(int argc, char** argv) {
     while ((clientConnection.descriptor =
                     accept(serverMainConnection.descriptor, (sockaddr *) &clientConnection.socketStruct,
                            &clientConnection.socketSize)) != -1) {
-
+        struct timeval tv;
+        tv.tv_sec = 2;
+        setsockopt(clientConnection.descriptor, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval));
         std::thread t_client([=] (ConnectionManager client) {
             clients_descriptors.insert(client.descriptor);
             cout << "clients_count: " << clients_descriptors.size() << endl;
@@ -59,7 +61,6 @@ int main(int argc, char** argv) {
                 clients_descriptors.erase(client.descriptor);
                 return;
             }
-            // TODO niewysyłanie wszystkiego do FCGI
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
             FCGIManager *fcgiConnection = new FCGIManager(ip.c_str(), port);
             if (fcgiConnection->createConnection() != -1) {

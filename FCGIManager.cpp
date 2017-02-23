@@ -31,12 +31,10 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     unsigned char message_buf[100];
     ssize_t readBytes = 0;
     recv(descriptor, &message_buf, 8, 0);
-    // TODO czytać do FCGI_END_REQUEST
+
     while ((readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0)) != 0) {
         try {
-            // TODO sparsować wiadomość od FCGI
             send(clientSocketFd, &message_buf, (size_t) readBytes, MSG_NOSIGNAL);
-            write(1, &message_buf, (size_t) readBytes);
         }
         catch (std::exception &e) {
             std::cout << e.what();
@@ -45,6 +43,18 @@ void FCGIManager::sendMessage(int clientSocketFd) {
         }
     }
     std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT\n";
+
+//    // TODO sparsować wiadomość od FCGI
+//    // TODO czytać do FCGI_END_REQUEST
+//    std::cout << "\n***MESSAGE FROM FCGI TO CLIENT\n";
+//    unsigned char message_buf[8];
+//    ssize_t readBytes = 0;
+//    std::string message_from_fcgi;
+//    while ((readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0)) != 0) {
+//        std::string received(message_buf, message_buf + readBytes);
+//        message_from_fcgi.append(received);
+//    }
+//    std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT\n";
 }
 
 FCGIManager::~FCGIManager() {}
