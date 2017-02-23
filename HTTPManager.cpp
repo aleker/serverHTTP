@@ -102,8 +102,8 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     ssize_t Len = 0;
     // TODO SIGHUP?
     int left_to_read = -1;
-    int content_size_founded = NOT_SET;
-    while (content_size_founded == NOT_SET or left_to_read > 0) {
+    int content_size_found= NOT_SET;
+    while (content_size_found == NOT_SET or left_to_read > 0) {
         if ((Len = recv(client->descriptor, buffer, 100, 0)) < 0) {
             perror("Error reading message from client.\n");
             return -1;
@@ -113,32 +113,38 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
         for (int i = 0; i < Len; i++) {
             content_data->push_back(buffer[i]);
         }
-        int start_searching = max(0, (const int &) (content_data->length() - Len - 2));   // for searching \n\r\n
-        int stop_searching = (int) content_data->length();
-        std::string received = content_data->substr((unsigned long) start_searching,
-                                                    (unsigned long) (stop_searching - start_searching));
-        int end_of_parameters_in_buffer = (int) received.find("\n\r\n");
-        if (content_size_founded == NOT_SET and end_of_parameters_in_buffer != -1) {
-            end_of_parameters_in_buffer += 2;
-            std::string parameters = content_data->substr(0, (unsigned long) (start_searching + end_of_parameters_in_buffer + 1));
-            int found = (int) parameters.find("\nContent-Length:");
-            if (found != -1) {
-                string content_size;
-                found += 16;
-                while (parameters[found] == ASCII_SPACE) found++;
-                while (isdigit(parameters[found])) {
-                    content_size.push_back(parameters[found]);
-                    found++;
+        if (content_size_found == NOT_SET) {
+            int start_searching = max(0, (const int &) (content_data->length() - Len - 2));   // for searching \n\r\n
+            int stop_searching = (int) content_data->length();
+            std::string received = content_data->substr((unsigned long) start_searching,
+                                                        (unsigned long) (stop_searching - start_searching));
+            int end_of_parameters_in_buffer = (int) received.find("\n\r\n");
+            if (end_of_parameters_in_buffer != -1) {
+                // end_of_parameters_in_buffer points to the end of parameters (last \n in \n\r\n)
+                end_of_parameters_in_buffer += 2;
+                std::string parameters = content_data->substr(0, (unsigned long) (start_searching +
+                                                                                  end_of_parameters_in_buffer + 1));
+                int found = (int) parameters.find("\nContent-Length:");
+                if (found != -1) {
+                    string content_size;
+                    found += 16;
+                    while (parameters[found] == ASCII_SPACE) found++;
+                    while (isdigit(parameters[found])) {
+                        content_size.push_back(parameters[found]);
+                        found++;
+                    }
+                    // left to read = content_size - (already_read - parameters)
+                    left_to_read =
+                            stoi(content_size) - ((int) (content_data->length() - start_searching - end_of_parameters_in_buffer - 1));
+                    cout << "stoi(content_size = )" << stoi(content_size) << " left_to_read = " << left_to_read << endl;
+                    content_size_found = POST;
+                } else {
+                    content_size_found = GET;
+                    break;
                 }
-                // left to read = content_size - (already_read - parameters)
-                left_to_read = stoi(content_size) - ((int) (content_data->length() - end_of_parameters_in_buffer - 1));
-                content_size_founded = POST;
-            } else {
-                content_size_founded = GET;
-                break;
             }
         }
-        else if (content_size_founded == POST) {
+        else if (content_size_found == POST) {
             left_to_read -= Len;
         }
     }
