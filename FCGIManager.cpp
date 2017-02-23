@@ -41,12 +41,11 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     end_header[7] = ZERO;               // reserved - always zero
     // Copying the two bytes of requestId
     if (recv(descriptor, &message_buf, 8, 0) == 0) {
-        cout << "UPS\n";
+        cout << "FCGI returned empty message!\n";
     }
-
     end_header[2] = message_buf[2];
     end_header[3] = message_buf[3];
-cout << "finished preparing the end header \n";
+
     bool stop_reading = false;
     while (1) {
         // Reading 8 bytes at a time
