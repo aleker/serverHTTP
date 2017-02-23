@@ -94,9 +94,9 @@ int Parser::prepareStandardParameters() {
 }
 
 int Parser::parseBrowserMessage(string *message) {
-    if (findSubstring("favicon", *message) != -1)
-        return -1;
-    else if (findSubstring("GET ", *message) != -1) {
+    //if (findSubstring("favicon", *message) != -1)
+    //    return -1;
+    if (findSubstring("GET ", *message) != -1) {
         requestMethod = "GET";
     } else if (findSubstring("POST ", *message) != -1) {
         requestMethod = "POST";
