@@ -68,18 +68,8 @@ int HTTPManager::prepareServerSocket(){
     return 0;
 }
 
-int HTTPManager::acceptConnection(ConnectionManager *client) const {
-    int enable = 1;
-    client->descriptor = accept(descriptor, (sockaddr*)&client->socketStruct, &client->socketSize);
-    if (client->descriptor == -1) {
-        perror("Error accepting client");
-        return -1;
-    }
-    setsockopt(client->descriptor, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)); // There will be no TIME_WAIT
-    return 0;
-}
-
 int HTTPManager::isWhaleMessage(string* content_data) const {
+    // TODO wejście na stronę'example.com/Content-Length:/123' nie będzie możliwe?
     string content = *content_data;
     int found = (int) content.find("Content-Length:");
     if (found != -1) {
@@ -105,7 +95,12 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     unsigned char* buffer = new unsigned char[100];
     ssize_t Len;
     int timeout;
+    // TODO pojedyncze wczytywanie konfiguracji
+    // TODO SIGHUP?
     if (ConfigFile::getConfigFile().readTimeout(&timeout) == -1) return -1;
+    // TODO zamiast resv_to -> setsockopt SO_RCVTIME0
+    // TODO czytacie aż nie będzie timeouta; czy to nie spowoduje że odpowiecie
+    // timeout milisekund po tym jak dotrze ostatni kawałek zapytania?
     while ((Len = recv_to(client->descriptor, buffer, 100, 0, timeout)) > 0) {
         for (int i = 0; i < Len; i++) {
             content_data->push_back(buffer[i]);
