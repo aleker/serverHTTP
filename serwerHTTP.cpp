@@ -6,15 +6,19 @@
 #include <error.h>
 #include <unordered_set>
 #include "ConfigFile.h"
+#include <signal.h>
 
 using namespace std;
 
-// client sockets
-std::vector<clientStruct> clients;
+unordered_set<int> clients_descriptors;
+int serverDescriptor;
 
-int random_int(int max) {
-    if (max != -1) return rand()%(max+1) + 0;
-    else return -1;
+void ctrl_c(int){
+    for(int clientFd : clients_descriptors)
+        close(clientFd);
+    close(serverDescriptor);
+    printf("Closing server\n");
+    exit(0);
 }
 
 int main(int argc, char** argv) {
@@ -34,46 +38,41 @@ int main(int argc, char** argv) {
     serverMainConnection.prepareServerSocket();
     int res = listen(serverMainConnection.descriptor, 1);
     if (res) error(1, errno, "listen failed!");
+    serverDescriptor = serverMainConnection.descriptor;
 
-    bool exit_server = false;
-    // THREAD THAT ACCEPTS CLIENT CONNECTIONS
-    std::thread t_clients([=] {
-        while(!exit_server) {
-            // CLIENT CONNECTION:
-            ConnectionManager clientConnection = ConnectionManager();
-            serverMainConnection.acceptConnection(&clientConnection);
+    signal(SIGINT, ctrl_c);
+
+    // CLIENT CONNECTION:
+    ConnectionManager clientConnection = ConnectionManager();
+    while ((clientConnection.descriptor =
+                    accept(serverMainConnection.descriptor, (sockaddr *) &clientConnection.socketStruct,
+                           &clientConnection.socketSize)) != -1) {
+
+        std::thread t_client([=] (ConnectionManager client) {
+            clients_descriptors.insert(client.descriptor);
+            cout << "clients_count: " << clients_descriptors.size() << endl;
             string message;
-            int result = serverMainConnection.getMessage(&clientConnection, &message);
+            int result = serverMainConnection.getMessage(&client, &message);
             if (result == -1) {
                 perror("Connection with client is canceled.");
-                continue;
+                clients_descriptors.erase(client.descriptor);
+                return;
             }
-            clientStruct newClient = {clientConnection.descriptor, message};
-            clients.push_back(newClient);
-        }
-    });
-    std::thread t_fcgi([=] {
-        while(!exit_server) {
-            int random_index = 0;
-            //if ((random_index = random_int((int) (clients.size() - 1))) < 0 ) continue;
-            if (clients.size() <= 0) continue;
+            // TODO niewysyłanie wszystkiego do FCGI
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
-            FCGIManager* fcgiConnection = new FCGIManager(ip.c_str(), port);
+            FCGIManager *fcgiConnection = new FCGIManager(ip.c_str(), port);
             fcgiConnection->createConnection();
-            serverMainConnection.sendMessage(fcgiConnection, &clients[random_index].message, clients[random_index].descriptor);
+            serverMainConnection.sendMessage(fcgiConnection, &message, client.descriptor);
             // SENDING MESSAGE FROM FCGI TO CLIENT
-            fcgiConnection->sendMessage(clients[random_index].descriptor);
-            close(clients[random_index].descriptor);
-            clients.erase(clients.begin() + random_index);
+            fcgiConnection->sendMessage(client.descriptor);
+            clients_descriptors.erase(client.descriptor);
+            close(client.descriptor);
             delete fcgiConnection;
-        }
-    });
+        }, clientConnection);
 
-    getchar();
-    exit_server = true;
-    t_clients.join();
-    t_fcgi.join();
-    cout << "bye bye\n";
-    close(serverMainConnection.descriptor);
+        t_client.detach();
+    }
+
+    perror("Error accepting client.\n");
     return 0;
 }
