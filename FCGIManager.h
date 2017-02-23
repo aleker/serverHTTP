@@ -10,6 +10,8 @@
 
 class FCGIManager : public ConnectionManager {
 public:
+    bool will_send_message = true;
+
     FCGIManager(const char *host, int port);
 
 

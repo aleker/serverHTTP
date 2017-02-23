@@ -108,7 +108,9 @@ int main(void) {
                 myfile.open(filename.c_str());
                 myfile << content << "\n";
                 myfile.close();
-                cout << "Content-type: text/html\r\n"
+                // TODO różne headery
+                cout << "HTTP/1.1 200 OK\r\n"
+                     << "Content-type: text/html\r\n"
                      << "\r\n"
                      << "<html>\n"
                      << "  <head>\n"
@@ -120,7 +122,8 @@ int main(void) {
                      << "</html>\n"
                      << "\r\n";
             } else {
-                cout << "Content-type: text/html\r\n"
+                cout << "HTTP/1.1 200 OK\r\n"
+                     << "Content-type: text/html\r\n"
                      << "\r\n"
                      << "<html>\n"
                      << "  <head>\n"
@@ -133,7 +136,8 @@ int main(void) {
                      << "\r\n";
             }
         } else {
-            cout << "Content-type: text/html\r\n"
+            cout << "HTTP/1.1 200 OK\r\n"
+                 << "Content-type: text/html\r\n"
                  << "\r\n"
                  << "<html>\n"
                  << "  <head>\n"

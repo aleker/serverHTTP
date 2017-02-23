@@ -7,6 +7,7 @@
 
 
 #include "ConnectionManager.h"
+#include "FCGIManager.h"
 
 class HTTPManager : public ConnectionManager {
 public:
@@ -17,7 +18,7 @@ public:
 
     int prepareServerSocket();
     int getMessage(ConnectionManager *client, std::string* content_data) const;
-    int sendMessage(ConnectionManager *receiver, std::string *message, int id) const;
+    int sendMessage(FCGIManager* fcgi, std::string* message, ConnectionManager* client) const;
 
 private:
 
