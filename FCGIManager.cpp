@@ -48,13 +48,16 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     while (1) {
         // Reading 8 bytes at a time
         readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0);
-        // Check if these 8 bytes are equal to end_header
         if (strcmp((const char *) message_buf, (const char *) end_header) == 0) {
             stop_reading = true;
         } else {
-            // Not an end header - either last 8 bytes or content
             if(stop_reading) {
                 // get the appStatus here
+                int appStatus = int(message_buf[0] << 24 |
+                                  message_buf[1] << 16 |
+                                  message_buf[2] << 8  |
+                                  message_buf[3]);
+                std::cout << "I HAVE RECEIVED THE APP STATUS (for some reason, duh)! " << appStatus << std::endl;
                 break;
             }
             try {
