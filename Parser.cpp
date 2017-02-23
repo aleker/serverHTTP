@@ -198,3 +198,33 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
     }
 
 }
+
+void Parser::reparse() {
+    for (int i = 0; i < (signed) parameters.size(); i++) {
+        parameters[i].erase(0, 5);
+        parameters[i].append(": ");
+        values[i].append("\r\n");
+        //cout << "parametr i wartość = " << parameters[i] << values[i];
+    }
+}
+
+void Parser::createHTTPResponse(string* HTTPresponse){
+    //reparse();
+    HTTPresponse->append(answerHeader);
+//    for (int i = 0; i < (signed) parameters.size(); i++) {
+//        try {
+//            HTTPresponse->append(parameters[i]);
+//            HTTPresponse->append(values[i]);
+//        }
+//        catch (exception &e) {
+//            cout << e.what() << "\n";
+//            perror("Error merging parameters into one message");
+//            return;
+//        }
+//    }
+    HTTPresponse->append("Content-type: text/html\r\n");
+    HTTPresponse->append("\r\n");
+    HTTPresponse->append("<html>\n<head>\n<title>Hello, World!</title>\n</head>\n<body>\n<h1>Hello from ");
+    HTTPresponse->append(uri);
+    HTTPresponse->append(" !</h1>\n</body>\n</html>\n\r\n");
+}

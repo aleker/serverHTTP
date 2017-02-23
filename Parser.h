@@ -21,6 +21,7 @@ public:
     int parseBrowserMessage(string *message);
 
     void createRecords(vector<Record> *records, int request_id, int role);
+    void createHTTPResponse(string *HTTPresponse);
 
 private:
     vector<string> parameters;
@@ -36,6 +37,9 @@ private:
     int prepareStandardParameters();
 
     int mergeIntoOneMessage(string *content_data);
+
+
+    void reparse();
 };
 
 

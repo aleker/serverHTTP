@@ -11,8 +11,10 @@
 #include "Record.h"
 #include "Parser.h"
 #include "ConfigFile.h"
+#include "FCGIManager.h"
 #include <sys/select.h>
 #include <fcntl.h>
+#include <cstring>
 
 using namespace std;
 
@@ -114,28 +116,52 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
     return isWhaleMessage(content_data);   // ;____;
 }
 
-int HTTPManager::sendMessage(ConnectionManager* receiver, string* message, int id) const {
-    std::vector<Record> records;
+int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManager* client) const {
     Parser parser;
     // PARSING MESSAGE
     parser.parseBrowserMessage(message);
 
-    // CREATE RECORDS
-    parser.createRecords(&records, id, role);
+    // IF POST -> CREATE RECORDS AND SEND TO FCGI
+    if (parser.requestMethod == "POST") {
+        cout << "POST request\n";
+        std::vector<Record> records;
+        parser.createRecords(&records, client->descriptor, role);
+        // SENDING RECORDS
+        cout << "\n***MESSAGE FROM HTTP TO FCGI\n";
+        for (Record &record: records) {
+            try {
+                sendto(fcgi->descriptor, record.message, (size_t) record.array_size, 0,
+                       (sockaddr *) &(fcgi->socketStruct), sizeof(fcgi->socketStruct));
+            }
+            catch (exception &e) {
+                cout << e.what();
+                perror("Error sending message to FCGI server.");
+                return -1;
+            }
+        }
+        cout << "***END OF MESSAGE FROM HTTP TO FCGI\n";
+    }
 
-    // SENDING RECORDS
-    cout << "\n***MESSAGE FROM HTTP TO FCGI\n";
-    for (Record &record: records) {
+    // IF GET -> SEND REPLY DIRECTLY TO CLIENT
+    else if (parser.requestMethod == "GET") {
+        cout << "GET request\n";
+        cout << "\n***MESSAGE FROM HTTP TO CLIENT\n";
+        fcgi->will_send_message = false;
+        cout << "!!!!!!!!!Sending message without FCGI\n";
+        string HTTPresponse;
+        parser.createHTTPResponse(&HTTPresponse);
+        cout << HTTPresponse;
+        unsigned char response[HTTPresponse.length()];
+        strcpy((char *) response, HTTPresponse.c_str());
         try {
-            sendto(receiver->descriptor, record.message, (size_t) record.array_size, 0,
-                   (sockaddr *) &(receiver->socketStruct), sizeof(receiver->socketStruct));
+            send(client->descriptor, &response, (size_t) HTTPresponse.length(), MSG_NOSIGNAL);
         }
         catch (exception &e) {
             cout << e.what();
-            perror("Error sending message to FCGI server.");
+            perror("Error sending message to client.");
             return -1;
         }
+        cout << "***END OF MESSAGE FROM HTTP TO CLIENT\n";
     }
-    cout << "***END OF MESSAGE FROM HTTP TO FCGI\n";
     return 0;
 }
