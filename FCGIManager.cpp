@@ -40,24 +40,28 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     end_header[6] = ZERO;               // padding length - always zero
     end_header[7] = ZERO;               // reserved - always zero
     // Copying the two bytes of requestId
-    recv(descriptor, &message_buf, 8, 0);
+    if (recv(descriptor, &message_buf, 8, 0) == 0) {
+        cout << "UPS\n";
+    }
+
     end_header[2] = message_buf[2];
     end_header[3] = message_buf[3];
-
-    int i = 0;
+cout << "finished preparing the end header \n";
     bool stop_reading = false;
     while (1) {
         // Reading 8 bytes at a time
-        // TODO do sth with readBytes == 0
-        i++;
         readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0);
-            if (readBytes != 0 ) cout << "reading bytes..." << i <<  "   received  " << readBytes << endl;
+        if(readBytes == 0) {
+            const char fcgiErr[43] = "An error with a fcgi connection occured. \n";
+            write(clientSocketFd, fcgiErr, sizeof(fcgiErr) - 1);
+            cout << "readBytes == 0" << endl;
+            break;
+        }
         if (strcmp((const char *) message_buf, (const char *) end_header) == 0) {
             cout << "END HEADER FOUND \n";
             stop_reading = true;
         } else {
             if (stop_reading) {
-                cout << "reading last 8 bytes to get the app status! " << endl;
                 // get the appStatus here
                 int appStatus = int(message_buf[0] << 24 |
                                     message_buf[1] << 16 |
