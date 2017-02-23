@@ -106,6 +106,14 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
             content_data->push_back(buffer[i]);
         }
     }
+//    while ((Len = recv(client->descriptor, buffer, 100, 0)) >= 0) {
+//        for (int i = 0; i < Len; i++) {
+//            content_data->push_back(buffer[i]);
+//        }
+//        std::string received(buffer, buffer + Len);
+//        // TODO czytać do \n\r\n z content_data potem znależć content length
+//    }
+
     if (content_data->length() == 0) {
         cout << "RESET!\n";
         return -1;
@@ -144,6 +152,7 @@ int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManag
 
     // IF GET -> SEND REPLY DIRECTLY TO CLIENT
     else if (parser.requestMethod == "GET") {
+        // TODO GET tylko z istniejących plików
         cout << "GET request\n";
         cout << "\n***MESSAGE FROM HTTP TO CLIENT\n";
         fcgi->will_send_message = false;
