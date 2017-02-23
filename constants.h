@@ -12,9 +12,10 @@
 #define ASCII_SPACE             32
 static const size_t bufsize = 1000;
 static std::string answerHeader = "HTTP/1.1 200 OK\r\n";
+#define ZERO                     0
 #define MAX_SIZE                61440.0
 
-
+#define FCGI_VERSION             1
 #define FCGI_BEGIN_REQUEST       1 //
 #define FCGI_ABORT_REQUEST       2 //
 #define FCGI_END_REQUEST         3
