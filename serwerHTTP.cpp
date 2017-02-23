@@ -59,6 +59,7 @@ int main(int argc, char** argv) {
             if (serverMainConnection.getMessage(&client, &message) == -1) {
                 perror("Connection with client is canceled.");
                 clients_descriptors.erase(client.descriptor);
+                cout << "clients_count: " << clients_descriptors.size() << endl;
                 return;
             }
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
@@ -71,6 +72,7 @@ int main(int argc, char** argv) {
             }
             end_connection:
             clients_descriptors.erase(client.descriptor);
+            cout << "clients_count: " << clients_descriptors.size() << endl;
             close(client.descriptor);
             delete fcgiConnection;
             return;
