@@ -43,7 +43,7 @@ void FCGIManager::sendMessage(int clientSocketFd) {
         catch (std::exception &e) {
             std::cout << e.what();
             perror("Connection with client canceled.");
-            break;
+            return;
         }
     }
     std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT\n";
