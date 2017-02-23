@@ -64,8 +64,9 @@ int main(int argc, char** argv) {
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
             FCGIManager *fcgiConnection = new FCGIManager(ip.c_str(), port);
             if (fcgiConnection->createConnection() != -1) {
-                if (serverMainConnection.sendMessage(fcgiConnection, &message, &client) == -1)
+                if (serverMainConnection.sendMessage(fcgiConnection, &message, &client) == -1){
                     goto end_connection;
+                }
                 // SENDING MESSAGE FROM FCGI TO CLIENT
                 if (fcgiConnection->will_send_message) fcgiConnection->sendMessage(client.descriptor);
             }

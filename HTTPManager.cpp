@@ -170,7 +170,9 @@ int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManag
             perror("Error sending message to client.");
             return -1;
         }
+        close(fcgi->descriptor);
         cout << "***END OF MESSAGE FROM HTTP TO CLIENT\n";
     }
+
     return 0;
 }
