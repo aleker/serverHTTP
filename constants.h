@@ -12,6 +12,7 @@
 #define ASCII_SPACE             32
 static const size_t bufsize = 1000;
 static std::string answerHeader = "HTTP/1.1 200 OK\r\n";
+static std::string errorHeader = "HTTP/1.1 400 Bad Request\r\n";
 #define ZERO                     0
 #define MAX_SIZE                61440.0
 

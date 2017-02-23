@@ -21,7 +21,9 @@ public:
     int parseBrowserMessage(string *message);
 
     void createRecords(vector<Record> *records, int request_id, int role);
-    void createHTTPResponse(string *HTTPresponse);
+    void createGETResponse(string *HTTPresponse);
+    void createPOSTResponse(string *HTTPresponse);
+    bool checkIfTxt();
 
 private:
     vector<string> parameters;
@@ -39,7 +41,7 @@ private:
     int mergeIntoOneMessage(string *content_data);
 
 
-    void reparse();
+
 };
 
 

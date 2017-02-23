@@ -20,40 +20,6 @@ using namespace std;
 
 HTTPManager::HTTPManager(const char *host, int port) : ConnectionManager(host, port) {}
 
-int recv_to(int fd, unsigned char *buffer, int len, int flags, int to) {
-
-    fd_set readset;
-    int result, iof = -1;
-    struct timeval tv;
-
-    // Initialize the set
-    FD_ZERO(&readset);
-    FD_SET(fd, &readset);
-
-    // Initialize time out struct
-    tv.tv_sec = 0;
-    tv.tv_usec = to * 1000;
-    // select()
-    result = select(fd+1, &readset, NULL, NULL, &tv);
-
-    // Check status
-    if (result < 0)
-        return -1;
-    else if (result > 0 && FD_ISSET(fd, &readset)) {
-        // Set non-blocking mode
-        if ((iof = fcntl(fd, F_GETFL, 0)) != -1)
-            fcntl(fd, F_SETFL, iof | O_NONBLOCK);
-        // receive
-        result = (int) recv(fd, buffer, (size_t) len, flags);
-        // set as before
-        if (iof != -1)
-            fcntl(fd, F_SETFL, iof);
-        return result;
-    }
-    return -2;
-}
-
-
 int HTTPManager::bindSocket(){
     int err = bind(descriptor, (sockaddr*)&socketStruct, sizeof(socketStruct));
     if (err == -1) {
@@ -165,9 +131,8 @@ int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManag
     parser.parseBrowserMessage(message);
 
     cout << "parser.requestMethod.length() = " << parser.requestMethod.length() << endl;
-    // IF POST -> CREATE RECORDS AND SEND TO FCGI
-    if (parser.requestMethod == "POST") {
-        cout << "POST request\n";
+    // IF POST AND TXT FILE EXTENSION -> CREATE RECORDS AND SEND TO FCGI
+    if (parser.requestMethod == "POST" and parser.checkIfTxt()) {
         std::vector<Record> records;
         parser.createRecords(&records, client->descriptor, role);
         // SENDING RECORDS
@@ -184,17 +149,18 @@ int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManag
             }
         }
         cout << "***END OF MESSAGE FROM HTTP TO FCGI\n";
+
     }
 
     // IF GET -> SEND REPLY DIRECTLY TO CLIENT
-    else if (parser.requestMethod == "GET") {
-        // TODO GET tylko z istniejących plików
-        cout << "GET request\n";
+
+    else if (parser.requestMethod == "GET" or !parser.checkIfTxt()) {
         cout << "\n***MESSAGE FROM HTTP TO CLIENT\n";
         fcgi->will_send_message = false;
         cout << "!!!!!!!!!Sending message without FCGI\n";
         string HTTPresponse;
-        parser.createHTTPResponse(&HTTPresponse);
+        if (parser.requestMethod == "GET") parser.createGETResponse(&HTTPresponse);
+        else parser.createPOSTResponse(&HTTPresponse);
         cout << HTTPresponse;
         unsigned char response[HTTPresponse.length()];
         strcpy((char *) response, HTTPresponse.c_str());

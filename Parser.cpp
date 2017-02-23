@@ -199,20 +199,49 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
 
 }
 
-void Parser::reparse() {
-    for (int i = 0; i < (signed) parameters.size(); i++) {
-        parameters[i].erase(0, 5);
-        parameters[i].append(": ");
-        values[i].append("\r\n");
-        //cout << "parametr i wartość = " << parameters[i] << values[i];
-    }
-}
-
-void Parser::createHTTPResponse(string* HTTPresponse){
+void Parser::createGETResponse(string *HTTPresponse){
     HTTPresponse->append(answerHeader);
     HTTPresponse->append("Content-type: text/html\r\n");
     HTTPresponse->append("\r\n");
     HTTPresponse->append("<html>\n<head>\n<title>Hello, World!</title>\n</head>\n<body>\n<h1>Hello from ");
     HTTPresponse->append(uri);
     HTTPresponse->append(" !</h1>\n</body>\n</html>\n\r\n");
+}
+
+void Parser::createPOSTResponse(string *HTTPresponse) {
+    HTTPresponse->append(errorHeader);
+    HTTPresponse->append("Content-type: text/html\r\n");
+    HTTPresponse->append("\r\n");
+    HTTPresponse->append("<html>\n<head>\n<title>Error! ;_;</title>\n</head>\n<body>\n<h1>Wrong file extension!");
+    HTTPresponse->append(" !</h1>\n</body>\n</html>\n\r\n");
+}
+
+
+bool Parser::checkIfTxt(){
+    string value = "";
+    for (int i = 0; i < (signed) parameters.size(); i++) {
+        if (parameters[i] == "HTTP_CONTENT_DISPOSITION") {
+            value = values[i];
+            break;
+        }
+    }
+
+    int index = (int) value.find("filename=");
+    string filename;
+    if (index != -1) {
+        index += 10;
+        try {
+            while (value[index] != '\"') {
+                filename.push_back(value[index]);
+                index++;
+            }
+        }
+        catch (exception &e) {
+            perror("Error reading filename.");
+            return false;
+        }
+        std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
+        if (filename.substr(filename.length()-4 , 4) == ".txt") return true;
+    }
+    return false;
 }
