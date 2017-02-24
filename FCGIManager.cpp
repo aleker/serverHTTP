@@ -8,6 +8,7 @@
 #include <cstring>
 #include "FCGIManager.h"
 #include "constants.h"
+
 using namespace std;
 
 FCGIManager::FCGIManager(const char *host, int port) : ConnectionManager(host, port) {}
@@ -42,6 +43,7 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     // Copying the two bytes of requestId
     if (recv(descriptor, &message_buf, 8, 0) == 0) {
         cout << "FCGI returned empty message!\n";
+        return;
     }
     end_header[2] = message_buf[2];
     end_header[3] = message_buf[3];
@@ -50,23 +52,23 @@ void FCGIManager::sendMessage(int clientSocketFd) {
     while (1) {
         // Reading 8 bytes at a time
         readBytes = recv(descriptor, &message_buf, sizeof(message_buf), 0);
-        if(readBytes == 0) {
+        if (readBytes == 0) {
             const char fcgiErr[43] = "An error with a fcgi connection occured. \n";
             write(clientSocketFd, fcgiErr, sizeof(fcgiErr) - 1);
-            cout << "readBytes == 0" << endl;
+            cout << "An error with a fcgi connection occured. \n" << endl;
             break;
         }
         if (strcmp((const char *) message_buf, (const char *) end_header) == 0) {
-            cout << "END HEADER FOUND \n";
+            // cout << "END HEADER FOUND \n";
             stop_reading = true;
         } else {
             if (stop_reading) {
                 // get the appStatus here
                 int appStatus = int(message_buf[0] << 24 |
                                     message_buf[1] << 16 |
-                                    message_buf[2] << 8  |
+                                    message_buf[2] << 8 |
                                     message_buf[3]);
-                std::cout << "appStatus " << appStatus << std::endl;
+                std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT WITH STATUS " << appStatus << std::endl;
                 break;
             }
             try {
@@ -79,7 +81,6 @@ void FCGIManager::sendMessage(int clientSocketFd) {
             }
         }
     }
-    std::cout << "***END OF MESSAGE FROM FCGI TO CLIENT\n";
 }
 
 FCGIManager::~FCGIManager() {}

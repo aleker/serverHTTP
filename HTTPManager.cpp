@@ -20,8 +20,8 @@ using namespace std;
 
 HTTPManager::HTTPManager(const char *host, int port) : ConnectionManager(host, port) {}
 
-int HTTPManager::bindSocket(){
-    int err = bind(descriptor, (sockaddr*)&socketStruct, sizeof(socketStruct));
+int HTTPManager::bindSocket() {
+    int err = bind(descriptor, (sockaddr *) &socketStruct, sizeof(socketStruct));
     if (err == -1) {
         perror("Error binding the socket!");
         return -1;
@@ -29,14 +29,14 @@ int HTTPManager::bindSocket(){
     return 0;
 }
 
-int HTTPManager::prepareServerSocket(){
+int HTTPManager::prepareServerSocket() {
     if (createSocket() == -1) return -1;
     createSockaddr();
-    if(bindSocket() == -1) return -1;
+    if (bindSocket() == -1) return -1;
     return 0;
 }
 
-int HTTPManager::isWhaleMessage(string* content_data) const {
+int HTTPManager::isWhaleMessage(string *content_data) const {
     string content = *content_data;
     int found = (int) content.find("\nContent-Length:");
     if (found != -1) {
@@ -51,7 +51,7 @@ int HTTPManager::isWhaleMessage(string* content_data) const {
         int found2 = (int) content.find("\n\r\n");
         if (found2 != -1 and found2 > found) {
             string content2 = content.substr((unsigned long) (found2 + 3), content.size() - found2 - 3);
-            if ((int)content2.length() < content_size2)
+            if ((int) content2.length() < content_size2)
                 return -1;
         }
         return 0;
@@ -59,22 +59,25 @@ int HTTPManager::isWhaleMessage(string* content_data) const {
     return 0;
 }
 
-int HTTPManager::getMessage(ConnectionManager* client, string* content_data) const {
-#define NOT_SET -1
-#define GET     1
-#define POST    2
+int HTTPManager::getMessage(ConnectionManager *client, string *content_data) const {
+#define NOT_SET    -1
+#define GET         1
+#define POST        2
     cout << "\n***MESSAGE FROM CLIENT TO HTTP\n";
-    unsigned char* buffer = new unsigned char[100];
+    unsigned char *buffer = new unsigned char[100];
     ssize_t Len = 0;
-    // TODO SIGHUP?
     int left_to_read = -1;
-    int content_size_found= NOT_SET;
+    int content_size_found = NOT_SET;
     while (content_size_found == NOT_SET or left_to_read > 0) {
         if ((Len = recv(client->descriptor, buffer, 100, 0)) < 0) {
             perror("Error reading message from client.\n");
+            delete[] buffer;
             return -1;
         }
-        if (Len == 0) return isWhaleMessage(content_data);    // ;_; probably connection is canceled
+        if (Len == 0) { // ;_; probably connection is canceled
+            delete[] buffer;
+            return isWhaleMessage(content_data);
+        }
 
         for (int i = 0; i < Len; i++) {
             content_data->push_back(buffer[i]);
@@ -101,36 +104,35 @@ int HTTPManager::getMessage(ConnectionManager* client, string* content_data) con
                     }
                     // left to read = content_size - (already_read - parameters)
                     left_to_read =
-                            stoi(content_size) - ((int) (content_data->length() - start_searching - end_of_parameters_in_buffer - 1));
-                    cout << "stoi(content_size = )" << stoi(content_size) << " left_to_read = " << left_to_read << endl;
+                            stoi(content_size) -
+                            ((int) (content_data->length() - start_searching - end_of_parameters_in_buffer - 1));
                     content_size_found = POST;
                 } else {
                     content_size_found = GET;
                     break;
                 }
             }
-        }
-        else if (content_size_found == POST) {
+        } else if (content_size_found == POST) {
             left_to_read -= Len;
         }
     }
 
     if (content_data->length() == 0) {
-        cout << "RESET!\n";
+        cout << "CONTENT DATA IS EMPTY. RESET!\n";
+        delete[] buffer;
         return -1;
     }
-    delete [] buffer;
-    cout << *content_data;
+    delete[] buffer;
+    // cout << *content_data;
     cout << "***END OF MESSAGE FROM CLIENT TO HTTP\n";
     return 0;
 }
 
-int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManager* client) const {
+int HTTPManager::sendMessage(FCGIManager *fcgi, string *message, ConnectionManager *client) const {
     Parser parser;
     // PARSING MESSAGE
     parser.parseBrowserMessage(message);
 
-    cout << "parser.requestMethod.length() = " << parser.requestMethod.length() << endl;
     // IF POST AND TXT FILE EXTENSION -> CREATE RECORDS AND SEND TO FCGI
     if (parser.requestMethod == "POST" and parser.checkIfTxt()) {
         std::vector<Record> records;
@@ -152,12 +154,10 @@ int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManag
 
     }
 
-    // IF GET -> SEND REPLY DIRECTLY TO CLIENT
-
+        // IF GET OR POST WITH WRONG EXTENSION -> SEND REPLY DIRECTLY TO CLIENT
     else if (parser.requestMethod == "GET" or !parser.checkIfTxt()) {
         cout << "\n***MESSAGE FROM HTTP TO CLIENT\n";
         fcgi->will_send_message = false;
-        cout << "!!!!!!!!!Sending message without FCGI\n";
         string HTTPresponse;
         if (parser.requestMethod == "GET") parser.createGETResponse(&HTTPresponse);
         else parser.createPOSTResponse(&HTTPresponse);
@@ -174,8 +174,7 @@ int HTTPManager::sendMessage(FCGIManager* fcgi, string* message, ConnectionManag
         }
         close(fcgi->descriptor);
         cout << "***END OF MESSAGE FROM HTTP TO CLIENT\n";
-    }
-    else {
+    } else {
         close(fcgi->descriptor);
         return -1;
     }

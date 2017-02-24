@@ -19,7 +19,7 @@ string get_request_content(const FCGX_Request &request) {
     unsigned long content_length = STDIN_MAX;
 
     if (content_length_str) {
-        content_length = strtol(content_length_str, &content_length_str, 10);
+        content_length = (unsigned long) strtol(content_length_str, &content_length_str, 10);
         if (*content_length_str) {
             cerr << "Can't Parse 'CONTENT_LENGTH='"
                  << FCGX_GetParam("CONTENT_LENGTH", request.envp)
@@ -36,7 +36,7 @@ string get_request_content(const FCGX_Request &request) {
 
     char *content_buffer = new char[content_length];
     cin.read(content_buffer, content_length);
-    content_length = cin.gcount();
+    content_length = (unsigned long) cin.gcount();
     do cin.ignore(1024); while (cin.gcount() == 1024);
 
     string content(content_buffer, content_length);
@@ -108,7 +108,6 @@ int main(void) {
                 myfile.open(filename.c_str());
                 myfile << content << "\n";
                 myfile.close();
-                // TODO różne headery
                 cout << "HTTP/1.1 200 OK\r\n"
                      << "Content-type: text/html\r\n"
                      << "\r\n"

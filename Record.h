@@ -18,6 +18,7 @@ public:
     Record(int array_size, int type, int request_id);
 
     void fillHeader(int shift, int contentLength);
+
 };
 
 
