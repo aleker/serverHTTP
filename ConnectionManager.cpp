@@ -20,7 +20,7 @@ int ConnectionManager::createSocket() {
 void ConnectionManager::createSockaddr() {
     sockaddr_in fcgiSocket;
     fcgiSocket.sin_family = AF_INET;
-    fcgiSocket.sin_port = htons(port);
+    fcgiSocket.sin_port = htons((uint16_t) port);
     fcgiSocket.sin_addr.s_addr = inet_addr(host);
     socketStruct = fcgiSocket;
 }

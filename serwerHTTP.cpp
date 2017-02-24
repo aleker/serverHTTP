@@ -13,15 +13,15 @@ using namespace std;
 unordered_set<int> clients_descriptors;
 int serverDescriptor;
 
-void ctrl_c(int){
-    for(int clientFd : clients_descriptors)
+void ctrl_c(int) {
+    for (int clientFd : clients_descriptors)
         close(clientFd);
     close(serverDescriptor);
     printf("Closing server\n");
     exit(0);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     if (argc < 3) {
         cerr << "Basic TCP server - set hosting IP and port by args" << endl;
         cerr << "Usage: " << argv[0] << " <server_ip> <server_port>" << endl;
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     if (ConfigFile::getConfigFile().readFCGI(&ip, &port) == -1) return -1;
 
     // MAIN SERVER CONNECTION
-    HTTPManager serverMainConnection(argv[1],atoi(argv[2]));
+    HTTPManager serverMainConnection(argv[1], atoi(argv[2]));
     if (ConfigFile::getConfigFile().readTimeout(&serverMainConnection.timeout) == -1) return -1;
     if (ConfigFile::getConfigFile().readRole(&serverMainConnection.role) == -1) return -1;
     serverMainConnection.prepareServerSocket();
@@ -52,20 +52,21 @@ int main(int argc, char** argv) {
         struct timeval tv;
         tv.tv_sec = 2;
         setsockopt(clientConnection.descriptor, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(struct timeval));
-        std::thread t_client([=] (ConnectionManager client) {
+
+        std::thread t_client([=](ConnectionManager client) {
             clients_descriptors.insert(client.descriptor);
-            cout << "clients_count: " << clients_descriptors.size() << endl;
+            cout << "---CLIENTS COUNT: " << clients_descriptors.size() << " ---\n";
             string message;
             if (serverMainConnection.getMessage(&client, &message) == -1) {
                 perror("Connection with client is canceled.");
                 clients_descriptors.erase(client.descriptor);
-                cout << "clients_count: " << clients_descriptors.size() << endl;
+                cout << "---CLIENTS COUNT: " << clients_descriptors.size() << " ---\n";
                 return;
             }
             // PARSING AND SENDING MESSAGE FROM SERVER TO FCGI:
             FCGIManager *fcgiConnection = new FCGIManager(ip.c_str(), port);
             if (fcgiConnection->createConnection() != -1) {
-                if (serverMainConnection.sendMessage(fcgiConnection, &message, &client) == -1){
+                if (serverMainConnection.sendMessage(fcgiConnection, &message, &client) == -1) {
                     goto end_connection;
                 }
                 // SENDING MESSAGE FROM FCGI TO CLIENT
@@ -73,7 +74,7 @@ int main(int argc, char** argv) {
             }
             end_connection:
             clients_descriptors.erase(client.descriptor);
-            cout << "clients_count: " << clients_descriptors.size() << endl;
+            cout << "---CLIENTS COUNT: " << clients_descriptors.size() << " ---\n";
             close(client.descriptor);
             delete fcgiConnection;
             return;

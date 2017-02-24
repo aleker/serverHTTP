@@ -89,7 +89,6 @@ int Parser::prepareStandardParameters() {
             return 0;
         }
     }
-
     return 0;
 }
 
@@ -199,7 +198,7 @@ void Parser::createRecords(vector<Record> *records, int request_id, int role) {
 
 }
 
-void Parser::createGETResponse(string *HTTPresponse){
+void Parser::createGETResponse(string *HTTPresponse) {
     HTTPresponse->append(answerHeader);
     HTTPresponse->append("Content-type: text/html\r\n");
     HTTPresponse->append("\r\n");
@@ -217,7 +216,7 @@ void Parser::createPOSTResponse(string *HTTPresponse) {
 }
 
 
-bool Parser::checkIfTxt(){
+bool Parser::checkIfTxt() {
     string value = "";
     for (int i = 0; i < (signed) parameters.size(); i++) {
         if (parameters[i] == "HTTP_CONTENT_DISPOSITION") {
@@ -241,7 +240,7 @@ bool Parser::checkIfTxt(){
             return false;
         }
         std::transform(filename.begin(), filename.end(), filename.begin(), ::tolower);
-        if (filename.substr(filename.length()-4 , 4) == ".txt") return true;
+        if (filename.substr(filename.length() - 4, 4) == ".txt") return true;
     }
     return false;
 }

@@ -62,7 +62,6 @@ static std::string errorHeader = "HTTP/1.1 400 Bad Request\r\n";
 // FLAGS:
 #define FCGI_KEEP_CONN          1
 
-
 static std::vector<std::string> CGI_params = {
         "GATEWAY_INTERFACE",    // CGI/1.1
         "SERVER_PROTOCOL",      // HTTP/1.1
